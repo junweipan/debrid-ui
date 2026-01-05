@@ -117,7 +117,7 @@ export function DownloaderPage() {
     setAccountInfo({ status: "loading", message: "Fetching account info…" });
     try {
       const response = await fetch(
-        "http://localhost:4000/account/infos",
+        "https://debrid-server.netlify.app/account/infos",
         {
           method: "GET",
           headers: {

@@ -87,6 +87,13 @@ export function LoginPage({ onSuccess }: LoginPageProps) {
           >
             {isSubmitting ? "Signing in…" : "Continue"}
           </button>
+          <button
+            type="button"
+            className="ghost-button login-secondary"
+            onClick={() => navigate("/hosts")}
+          >
+            Check host list
+          </button>
           <p className="login-hint">
             Mock account: {MOCK_EMAIL} · {MOCK_PASSWORD}
           </p>

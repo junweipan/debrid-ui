@@ -2,6 +2,7 @@ import { useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import "./App.css";
 import { DownloaderPage } from "./pages/DownloaderPage";
+import { HostStatusPage } from "./pages/HostStatusPage";
 import { LoginPage } from "./pages/LoginPage";
 
 function App() {
@@ -23,9 +24,14 @@ function App() {
         <Route
           path="/"
           element={
-            isAuthenticated ? <DownloaderPage /> : <Navigate to="/login" replace />
+            isAuthenticated ? (
+              <DownloaderPage />
+            ) : (
+              <Navigate to="/login" replace />
+            )
           }
         />
+        <Route path="/hosts" element={<HostStatusPage />} />
         <Route
           path="*"
           element={<Navigate to={isAuthenticated ? "/" : "/login"} replace />}
