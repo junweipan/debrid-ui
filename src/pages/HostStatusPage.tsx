@@ -56,6 +56,17 @@ export function HostStatusPage() {
     direction: "asc",
   });
   const [filterText, setFilterText] = useState<string>("");
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    const body = document.body;
+    if (isSidebarOpen) {
+      body.classList.add("no-scroll");
+    } else {
+      body.classList.remove("no-scroll");
+    }
+    return () => body.classList.remove("no-scroll");
+  }, [isSidebarOpen]);
 
   const fetchHostStatuses = useCallback(async () => {
     setHostStatus((prev) => ({
@@ -166,172 +177,252 @@ export function HostStatusPage() {
     : null;
 
   return (
-    <div className="host-page-shell">
-      <header className="host-page-header">
+    <div className="app-shell">
+      <aside
+        id="primary-sidebar"
+        className={`sidebar ${isSidebarOpen ? "open" : ""}`}
+      >
         <button
           type="button"
-          className="ghost-button host-back-button"
-          onClick={() => navigate("/login")}
+          className="sidebar-close"
+          aria-label="Close navigation"
+          onClick={() => setSidebarOpen(false)}
         >
-          ← Back to login
+          ×
         </button>
-        <div>
-          <p className="login-eyebrow">Status center</p>
-          <h1>Active host status</h1>
-          <p className="host-status-subhead">
-            Mirrors pulled directly from Debrid-Link&apos;s live availability
-            feed.
-          </p>
-        </div>
-      </header>
-
-      <section className="host-status-section" aria-live="polite">
-        <div className="host-status-header">
+        <div className="brand">
+          <span className="brand-pill">DL</span>
           <div>
-            <p className="eyebrow">Live availability</p>
-            <h2>Network availability monitor</h2>
+            <p className="brand-eyebrow">derbrid</p>
+            <p className="brand-title">Downloader</p>
           </div>
+        </div>
+        <nav className="nav-stack">
           <button
             type="button"
-            className="ghost-button"
-            onClick={() => void fetchHostStatuses()}
-            disabled={hostStatus.status === "loading"}
+            className="nav-item"
+            onClick={() => navigate("/")}
           >
-            {hostStatus.status === "loading" ? "Refreshing…" : "Refresh"}
+            <span className="icon">↓</span>
+            Downloader
           </button>
-        </div>
-        <div
-          className={`host-status-panel state-${hostStatus.status}`}
-          aria-live="polite"
-        >
-          <div className="host-status-pill">
-            <span className="status-dot" />
-            <p>{hostStatus.message}</p>
+          <button
+            type="button"
+            className="nav-item active"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <span className="icon">☁</span>
+            检查主机列表
+          </button>
+          <button
+            type="button"
+            className="nav-item"
+            onClick={() => navigate("/tools")}
+          >
+            <span className="icon">📦</span>
+            下载工具推荐
+          </button>
+          <button
+            type="button"
+            className="nav-item"
+            onClick={() => navigate("/login")}
+          >
+            <span className="icon">🚪</span>
+            退出登录
+          </button>
+        </nav>
+        <div className="sidebar-footer">
+          <p className="foot-label">Network health</p>
+          <div className="foot-meter">
+            <span className="signal-fill" />
           </div>
-          {lastUpdatedCopy && (
-            <p className="host-status-timestamp">Updated {lastUpdatedCopy}</p>
-          )}
+          <p className="foot-note">5 mirrors · 12 peers</p>
         </div>
+      </aside>
 
-        <div className="host-filter-wrapper">
-          <input
-            type="text"
-            className="host-filter-input"
-            placeholder="Filter by host name or primary domain..."
-            value={filterText}
-            onChange={(e) => setFilterText(e.target.value)}
-            aria-label="Filter hosts by name or domain"
-          />
-        </div>
+      <div
+        className={`mobile-overlay ${isSidebarOpen ? "visible" : ""}`}
+        onClick={() => setSidebarOpen(false)}
+      />
 
-        {hostStatus.status === "error" ? (
-          <p className="host-status-error">
-            Unable to reach Debrid-Link. Retry the sync to view live host data.
-          </p>
-        ) : (
+      <main className="main-panel">
+        <header className="top-bar">
+          <button
+            type="button"
+            className="mobile-nav-toggle"
+            aria-label="Open navigation"
+            aria-controls="primary-sidebar"
+            aria-expanded={isSidebarOpen}
+            onClick={() => setSidebarOpen(true)}
+          >
+            ☰
+          </button>
+          <div>
+            <p className="eyebrow">Status center</p>
+            <h1>Active host status</h1>
+            <p className="subhead">
+              Mirrors pulled directly from Debrid-Link&apos;s live availability
+              feed.
+            </p>
+          </div>
+          <div className="user-pill">
+            <span className="status-dot" />
+            <div>
+              <p className="user-label">Session: orbital@stack</p>
+              <p className="user-note">Premium · exp 12 Feb</p>
+            </div>
+          </div>
+        </header>
+
+        <section className="host-status-section" aria-live="polite">
+          <div className="host-status-header">
+            <div>
+              <p className="eyebrow">Live availability</p>
+              <h2>Network availability monitor</h2>
+            </div>
+            <button
+              type="button"
+              className="ghost-button"
+              onClick={() => void fetchHostStatuses()}
+              disabled={hostStatus.status === "loading"}
+            >
+              {hostStatus.status === "loading" ? "Refreshing…" : "Refresh"}
+            </button>
+          </div>
           <div
-            className="host-status-table-wrapper"
-            role="region"
+            className={`host-status-panel state-${hostStatus.status}`}
             aria-live="polite"
           >
-            <table className="host-status-table">
-              <thead>
-                <tr>
-                  <th scope="col">
-                    <button
-                      type="button"
-                      className="table-sort-button"
-                      onClick={() => handleSort("name")}
-                    >
-                      Host
-                      {sortState.field === "name" && (
-                        <span className="sort-indicator">
-                          {sortState.direction === "asc" ? "↑" : "↓"}
-                        </span>
-                      )}
-                    </button>
-                  </th>
-                  <th scope="col">Tier</th>
-                  <th scope="col">
-                    <button
-                      type="button"
-                      className="table-sort-button"
-                      onClick={() => handleSort("domain")}
-                    >
-                      Primary domain
-                      {sortState.field === "domain" && (
-                        <span className="sort-indicator">
-                          {sortState.direction === "asc" ? "↑" : "↓"}
-                        </span>
-                      )}
-                    </button>
-                  </th>
-                  <th scope="col">Domain coverage</th>
-                  <th scope="col">
-                    <button
-                      type="button"
-                      className="table-sort-button"
-                      onClick={() => handleSort("status")}
-                    >
-                      Status
-                      {sortState.field === "status" && (
-                        <span className="sort-indicator">
-                          {sortState.direction === "asc" ? "↑" : "↓"}
-                        </span>
-                      )}
-                    </button>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {hostStatus.items.length === 0 ? (
+            <div className="host-status-pill">
+              <span className="status-dot" />
+              <p>{hostStatus.message}</p>
+            </div>
+            {lastUpdatedCopy && (
+              <p className="host-status-timestamp">Updated {lastUpdatedCopy}</p>
+            )}
+          </div>
+
+          <div className="host-filter-wrapper">
+            <input
+              type="text"
+              className="host-filter-input"
+              placeholder="Filter by host name or primary domain..."
+              value={filterText}
+              onChange={(e) => setFilterText(e.target.value)}
+              aria-label="Filter hosts by name or domain"
+            />
+          </div>
+
+          {hostStatus.status === "error" ? (
+            <p className="host-status-error">
+              Unable to reach Debrid-Link. Retry the sync to view live host
+              data.
+            </p>
+          ) : (
+            <div
+              className="host-status-table-wrapper"
+              role="region"
+              aria-live="polite"
+            >
+              <table className="host-status-table">
+                <thead>
                   <tr>
-                    <td colSpan={5} className="host-status-empty-cell">
-                      No hosts reported.
-                    </td>
-                  </tr>
-                ) : filteredItems.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="host-status-empty-cell">
-                      No hosts match your filter.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredItems.map((host) => (
-                    <tr key={host.name}>
-                      <td>
-                        <div className="host-name-cell">
-                          <span className="host-type-pill">
-                            {host.type === "stream" ? "Stream" : "Host"}
+                    <th scope="col">
+                      <button
+                        type="button"
+                        className="table-sort-button"
+                        onClick={() => handleSort("name")}
+                      >
+                        Host
+                        {sortState.field === "name" && (
+                          <span className="sort-indicator">
+                            {sortState.direction === "asc" ? "↑" : "↓"}
                           </span>
-                          <span className="host-name">{host.name}</span>
-                        </div>
-                      </td>
-                      <td>{host.isFree ? "Free tier" : "Premium"}</td>
-                      <td>{host.domains[0] ?? "No domain reported"}</td>
-                      <td>{summarizeDomains(host.domains)}</td>
-                      <td>
-                        <span
-                          className={`status-chip ${
-                            host.status === 1 ? "online" : "offline"
-                          }`}
-                        >
-                          <span
-                            className={`status-dot ${
-                              host.status === 1 ? "online" : "offline"
-                            }`}
-                          />
-                          {host.status === 1 ? "Online" : "Offline"}
-                        </span>
+                        )}
+                      </button>
+                    </th>
+                    <th scope="col">Tier</th>
+                    <th scope="col">
+                      <button
+                        type="button"
+                        className="table-sort-button"
+                        onClick={() => handleSort("domain")}
+                      >
+                        Primary domain
+                        {sortState.field === "domain" && (
+                          <span className="sort-indicator">
+                            {sortState.direction === "asc" ? "↑" : "↓"}
+                          </span>
+                        )}
+                      </button>
+                    </th>
+                    <th scope="col">Domain coverage</th>
+                    <th scope="col">
+                      <button
+                        type="button"
+                        className="table-sort-button"
+                        onClick={() => handleSort("status")}
+                      >
+                        Status
+                        {sortState.field === "status" && (
+                          <span className="sort-indicator">
+                            {sortState.direction === "asc" ? "↑" : "↓"}
+                          </span>
+                        )}
+                      </button>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {hostStatus.items.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="host-status-empty-cell">
+                        No hosts reported.
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
+                  ) : filteredItems.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="host-status-empty-cell">
+                        No hosts match your filter.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredItems.map((host) => (
+                      <tr key={host.name}>
+                        <td>
+                          <div className="host-name-cell">
+                            <span className="host-type-pill">
+                              {host.type === "stream" ? "Stream" : "Host"}
+                            </span>
+                            <span className="host-name">{host.name}</span>
+                          </div>
+                        </td>
+                        <td>{host.isFree ? "Free tier" : "Premium"}</td>
+                        <td>{host.domains[0] ?? "No domain reported"}</td>
+                        <td>{summarizeDomains(host.domains)}</td>
+                        <td>
+                          <span
+                            className={`status-chip ${
+                              host.status === 1 ? "online" : "offline"
+                            }`}
+                          >
+                            <span
+                              className={`status-dot ${
+                                host.status === 1 ? "online" : "offline"
+                              }`}
+                            />
+                            {host.status === 1 ? "Online" : "Offline"}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      </main>
     </div>
   );
 }

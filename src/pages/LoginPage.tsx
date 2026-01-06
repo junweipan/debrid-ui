@@ -53,13 +53,6 @@ export function LoginPage({ onSuccess }: LoginPageProps) {
         <p className="login-subhead">
           请先登录后使用全部功能
         </p>
-            <button
-            type="button"
-            className="ghost-button login-secondary"
-            onClick={() => navigate("/hosts")}
-          >
-            检查下载链接 可用主机列表
-          </button>
         <form className="login-form" onSubmit={handleSubmit}>
           <label className="input-field">
             <span>邮箱</span>

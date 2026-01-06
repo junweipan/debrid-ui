@@ -196,6 +196,14 @@ export function DownloaderPage() {
             <span className="icon">📦</span>
             下载工具推荐
           </button>
+          <button
+            type="button"
+            className="nav-item"
+            onClick={() => navigate("/login")}
+          >
+            <span className="icon">🚪</span>
+            退出登录
+          </button>
         </nav>
         <div className="sidebar-footer">
           <p className="foot-label">Network health</p>

@@ -61,6 +61,14 @@ export function ToolsRecommendationPage() {
             <span className="icon">📦</span>
             下载工具推荐
           </button>
+          <button
+            type="button"
+            className="nav-item"
+            onClick={() => navigate("/login")}
+          >
+            <span className="icon">🚪</span>
+            退出登录
+          </button>
         </nav>
         <div className="sidebar-footer">
           <p className="foot-label">Network health</p>
@@ -121,8 +129,7 @@ export function ToolsRecommendationPage() {
                   marginBottom: "0.5rem",
                   color: "rgba(255,255,255,0.8)",
                 }}
-              >
-              </p>
+              ></p>
               <p
                 style={{
                   fontSize: "0.9rem",
@@ -169,7 +176,13 @@ export function ToolsRecommendationPage() {
                       cursor: "pointer",
                     }}
                   >
-                    <a href="https://www.internetdownloadmanager.com/" target="_blank" rel="noopener noreferrer"><strong style={{ color: "#6366f1" }}>IDM</strong></a>
+                    <a
+                      href="https://www.internetdownloadmanager.com/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <strong style={{ color: "#6366f1" }}>IDM</strong>
+                    </a>
                     <span
                       style={{
                         marginLeft: "0.5rem",
@@ -188,7 +201,13 @@ export function ToolsRecommendationPage() {
                       borderLeft: "3px solid #6366f1",
                     }}
                   >
-                    <a href="https://www.freedownloadmanager.org/" target="_blank" rel="noopener noreferrer"><strong style={{ color: "#6366f1" }}>FDM</strong></a>
+                    <a
+                      href="https://www.freedownloadmanager.org/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <strong style={{ color: "#6366f1" }}>FDM</strong>
+                    </a>
                     <span
                       style={{
                         marginLeft: "0.5rem",
@@ -227,7 +246,13 @@ export function ToolsRecommendationPage() {
                       borderLeft: "3px solid #6366f1",
                     }}
                   >
-                    <a href="https://www.freedownloadmanager.org/" target="_blank" rel="noopener noreferrer"><strong style={{ color: "#6366f1" }}>FDM</strong></a>
+                    <a
+                      href="https://www.freedownloadmanager.org/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <strong style={{ color: "#6366f1" }}>FDM</strong>
+                    </a>
                     <span
                       style={{
                         marginLeft: "0.5rem",
@@ -266,7 +291,15 @@ export function ToolsRecommendationPage() {
                       borderLeft: "3px solid #6366f1",
                     }}
                   >
-                    <a href="https://apps.apple.com/us/app/fget-file-manager-browser/id1582654012" target="_blank" rel="noopener noreferrer"><strong style={{ color: "#6366f1" }}>fGet-File Manager & Browser</strong></a>
+                    <a
+                      href="https://apps.apple.com/us/app/fget-file-manager-browser/id1582654012"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <strong style={{ color: "#6366f1" }}>
+                        fGet-File Manager & Browser
+                      </strong>
+                    </a>
                   </li>
                 </ul>
               </div>
@@ -296,7 +329,14 @@ export function ToolsRecommendationPage() {
                       borderLeft: "3px solid #6366f1",
                     }}
                   >
-                     <a href="https://aria2.github.io/" target="_blank" rel="noopener noreferrer"> <strong style={{ color: "#6366f1" }}>aria2c</strong></a>
+                    <a
+                      href="https://aria2.github.io/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {" "}
+                      <strong style={{ color: "#6366f1" }}>aria2c</strong>
+                    </a>
                   </li>
                 </ul>
               </div>
