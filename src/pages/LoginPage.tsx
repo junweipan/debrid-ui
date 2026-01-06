@@ -50,13 +50,19 @@ export function LoginPage({ onSuccess }: LoginPageProps) {
     <div className="login-shell">
       <div className="login-card">
         <p className="login-eyebrow">derbrid secure</p>
-        <h1>Sign in to your workspace</h1>
         <p className="login-subhead">
-          Use the mock credentials to continue into the downloader.
+          请先登录后使用全部功能
         </p>
+            <button
+            type="button"
+            className="ghost-button login-secondary"
+            onClick={() => navigate("/hosts")}
+          >
+            检查下载链接 可用主机列表
+          </button>
         <form className="login-form" onSubmit={handleSubmit}>
           <label className="input-field">
-            <span>Email</span>
+            <span>邮箱</span>
             <input
               type="email"
               name="email"
@@ -68,7 +74,7 @@ export function LoginPage({ onSuccess }: LoginPageProps) {
             />
           </label>
           <label className="input-field">
-            <span>Password</span>
+            <span>密码</span>
             <input
               type="password"
               name="password"
@@ -85,14 +91,7 @@ export function LoginPage({ onSuccess }: LoginPageProps) {
             className="primary-button login-button"
             disabled={isSubmitting}
           >
-            {isSubmitting ? "Signing in…" : "Continue"}
-          </button>
-          <button
-            type="button"
-            className="ghost-button login-secondary"
-            onClick={() => navigate("/hosts")}
-          >
-            Check host list
+            {isSubmitting ? "正在登录…" : "登录"}
           </button>
           <p className="login-hint">
             Mock account: {MOCK_EMAIL} · {MOCK_PASSWORD}

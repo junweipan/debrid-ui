@@ -369,6 +369,39 @@ h3 {
   color: var(--text-muted);
 }
 
+.host-filter-wrapper {
+  padding: 0;
+  margin: 0;
+}
+
+.host-filter-input {
+  width: 100%;
+  border-radius: 16px;
+  border: 1px solid var(--border-strong);
+  background: rgba(5, 9, 24, 0.9);
+  color: #f5f7ff;
+  padding: 14px 18px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.host-filter-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+.host-filter-input:focus {
+  border-color: rgba(112, 154, 255, 0.6);
+  background: rgba(5, 9, 24, 0.95);
+  box-shadow: 0 0 0 3px rgba(112, 154, 255, 0.12);
+}
+
+.host-filter-input:hover:not(:focus) {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
 .host-status-table-wrapper {
   border-radius: 20px;
   border: 1px solid var(--border-soft);

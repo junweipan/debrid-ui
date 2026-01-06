@@ -55,6 +55,7 @@ export function HostStatusPage() {
     field: null,
     direction: "asc",
   });
+  const [filterText, setFilterText] = useState<string>("");
 
   const fetchHostStatuses = useCallback(async () => {
     setHostStatus((prev) => ({
@@ -152,6 +153,14 @@ export function HostStatusPage() {
     return 0;
   });
 
+  const filteredItems = sortedItems.filter((host) => {
+    if (!filterText.trim()) return true;
+    const searchText = filterText.toLowerCase();
+    const hostName = host.name.toLowerCase();
+    const primaryDomain = (host.domains[0] ?? "").toLowerCase();
+    return hostName.includes(searchText) || primaryDomain.includes(searchText);
+  });
+
   const lastUpdatedCopy = hostStatus.lastUpdated
     ? new Date(hostStatus.lastUpdated).toLocaleTimeString()
     : null;
@@ -202,6 +211,17 @@ export function HostStatusPage() {
           {lastUpdatedCopy && (
             <p className="host-status-timestamp">Updated {lastUpdatedCopy}</p>
           )}
+        </div>
+
+        <div className="host-filter-wrapper">
+          <input
+            type="text"
+            className="host-filter-input"
+            placeholder="Filter by host name or primary domain..."
+            value={filterText}
+            onChange={(e) => setFilterText(e.target.value)}
+            aria-label="Filter hosts by name or domain"
+          />
         </div>
 
         {hostStatus.status === "error" ? (
@@ -270,8 +290,14 @@ export function HostStatusPage() {
                       No hosts reported.
                     </td>
                   </tr>
+                ) : filteredItems.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="host-status-empty-cell">
+                      No hosts match your filter.
+                    </td>
+                  </tr>
                 ) : (
-                  sortedItems.map((host) => (
+                  filteredItems.map((host) => (
                     <tr key={host.name}>
                       <td>
                         <div className="host-name-cell">

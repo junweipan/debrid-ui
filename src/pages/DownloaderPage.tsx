@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 type DownloadSnapshot = {
   id: string;
@@ -91,6 +92,7 @@ type AccountInfoState = {
 };
 
 export function DownloaderPage() {
+  const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState<Filter>("All");
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [accountInfo, setAccountInfo] = useState<AccountInfoState>({
@@ -121,7 +123,7 @@ export function DownloaderPage() {
         {
           method: "GET",
           headers: {
-            Accept: "application/json"
+            Accept: "application/json",
           },
         }
       );
@@ -181,26 +183,18 @@ export function DownloaderPage() {
           <button
             type="button"
             className="nav-item"
-            onClick={() => setSidebarOpen(false)}
+            onClick={() => navigate("/hosts")}
           >
             <span className="icon">☁</span>
-            Cloud seedbox
+            检查主机列表
           </button>
           <button
             type="button"
             className="nav-item"
-            onClick={() => setSidebarOpen(false)}
+            onClick={() => navigate("/tools")}
           >
-            <span className="icon">⚙</span>
-            Automation
-          </button>
-          <button
-            type="button"
-            className="nav-item"
-            onClick={() => setSidebarOpen(false)}
-          >
-            <span className="icon">🛈</span>
-            Diagnostics
+            <span className="icon">📦</span>
+            下载工具推荐
           </button>
         </nav>
         <div className="sidebar-footer">
@@ -231,10 +225,9 @@ export function DownloaderPage() {
           </button>
           <div>
             <p className="eyebrow">Secure aggregation</p>
-            <h1>Accelerate your multi-host transfers</h1>
+            <h1>解析文档</h1>
             <p className="subhead">
-              Queue magnets, hosters, and torrents in a single workspace
-              inspired by Debrid-Link.
+              提取完文件信息后可查看预计要扣取的账号流量，部分类型因中转难度有差异而有倍率，如有可能请尽量使用正常倍率的类型。
             </p>
           </div>
           <div className="user-pill">

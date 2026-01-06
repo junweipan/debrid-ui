@@ -4,6 +4,7 @@ import "./App.css";
 import { DownloaderPage } from "./pages/DownloaderPage";
 import { HostStatusPage } from "./pages/HostStatusPage";
 import { LoginPage } from "./pages/LoginPage";
+import { ToolsRecommendationPage } from "./pages/ToolsRecommendationPage";
 
 function App() {
   const [isAuthenticated, setAuthenticated] = useState(false);
@@ -32,6 +33,7 @@ function App() {
           }
         />
         <Route path="/hosts" element={<HostStatusPage />} />
+        <Route path="/tools" element={<ToolsRecommendationPage />} />
         <Route
           path="*"
           element={<Navigate to={isAuthenticated ? "/" : "/login"} replace />}
