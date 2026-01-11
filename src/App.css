@@ -590,11 +590,40 @@ h3 {
   font-size: 14px;
 }
 
+.login-info {
+  margin: 0;
+  font-size: 14px;
+  text-align: center;
+  color: #f5f7ff;
+}
+
+.login-info-neutral {
+  color: #f5f7ff;
+}
+
+.login-info-warning {
+  color: #ffb347;
+}
+
+.login-info-success {
+  color: #4cff9c;
+}
+
+.login-verify-button {
+  width: 100%;
+  justify-content: center;
+}
+
 .login-hint {
   margin-top: 8px;
   font-size: 13px;
   color: var(--text-muted);
   text-align: center;
+}
+
+.ghost-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .sidebar {

@@ -1,9 +1,22 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
-export function ToolsRecommendationPage() {
+type ToolsRecommendationPageProps = {
+  onLogout: () => void;
+};
+
+export function ToolsRecommendationPage({
+  onLogout,
+}: ToolsRecommendationPageProps) {
   const navigate = useNavigate();
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    if (!localStorage.getItem("authToken")) {
+      onLogout();
+      navigate("/login", { replace: true });
+    }
+  }, [navigate, onLogout]);
 
   useEffect(() => {
     const body = document.body;
@@ -14,6 +27,13 @@ export function ToolsRecommendationPage() {
     }
     return () => body.classList.remove("no-scroll");
   }, [isSidebarOpen]);
+
+  const handleLogout = () => {
+    setSidebarOpen(false);
+    localStorage.removeItem("authToken");
+    onLogout();
+    navigate("/login", { replace: true });
+  };
 
   return (
     <div className="app-shell">
@@ -61,11 +81,7 @@ export function ToolsRecommendationPage() {
             <span className="icon">📦</span>
             下载工具推荐
           </button>
-          <button
-            type="button"
-            className="nav-item"
-            onClick={() => navigate("/login")}
-          >
+          <button type="button" className="nav-item" onClick={handleLogout}>
             <span className="icon">🚪</span>
             退出登录
           </button>

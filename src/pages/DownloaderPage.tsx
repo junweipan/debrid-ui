@@ -91,7 +91,11 @@ type AccountInfoState = {
   message: string;
 };
 
-export function DownloaderPage() {
+type DownloaderPageProps = {
+  onLogout: () => void;
+};
+
+export function DownloaderPage({ onLogout }: DownloaderPageProps) {
   const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState<Filter>("All");
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -99,6 +103,13 @@ export function DownloaderPage() {
     status: "idle",
     message: "Tap Auto extract to fetch account info.",
   });
+
+  useEffect(() => {
+    if (!localStorage.getItem("authToken")) {
+      onLogout();
+      navigate("/login", { replace: true });
+    }
+  }, [navigate, onLogout]);
 
   useEffect(() => {
     const body = document.body;
@@ -150,6 +161,13 @@ export function DownloaderPage() {
     }
   };
 
+  const handleLogout = () => {
+    setSidebarOpen(false);
+    localStorage.removeItem("authToken");
+    onLogout();
+    navigate("/login", { replace: true });
+  };
+
   return (
     <div className="app-shell">
       <aside
@@ -196,11 +214,7 @@ export function DownloaderPage() {
             <span className="icon">📦</span>
             下载工具推荐
           </button>
-          <button
-            type="button"
-            className="nav-item"
-            onClick={() => navigate("/login")}
-          >
+          <button type="button" className="nav-item" onClick={handleLogout}>
             <span className="icon">🚪</span>
             退出登录
           </button>

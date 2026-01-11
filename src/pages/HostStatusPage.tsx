@@ -44,7 +44,11 @@ const summarizeDomains = (domains: string[]) => {
   return remainder > 0 ? `${baseLine} +${remainder}` : baseLine;
 };
 
-export function HostStatusPage() {
+type HostStatusPageProps = {
+  onLogout: () => void;
+};
+
+export function HostStatusPage({ onLogout }: HostStatusPageProps) {
   const navigate = useNavigate();
   const [hostStatus, setHostStatus] = useState<HostStatusState>({
     items: [],
@@ -57,6 +61,13 @@ export function HostStatusPage() {
   });
   const [filterText, setFilterText] = useState<string>("");
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    if (!localStorage.getItem("authToken")) {
+      onLogout();
+      navigate("/login", { replace: true });
+    }
+  }, [navigate, onLogout]);
 
   useEffect(() => {
     const body = document.body;
@@ -176,6 +187,13 @@ export function HostStatusPage() {
     ? new Date(hostStatus.lastUpdated).toLocaleTimeString()
     : null;
 
+  const handleLogout = () => {
+    setSidebarOpen(false);
+    localStorage.removeItem("authToken");
+    onLogout();
+    navigate("/login", { replace: true });
+  };
+
   return (
     <div className="app-shell">
       <aside
@@ -222,11 +240,7 @@ export function HostStatusPage() {
             <span className="icon">📦</span>
             下载工具推荐
           </button>
-          <button
-            type="button"
-            className="nav-item"
-            onClick={() => navigate("/login")}
-          >
+          <button type="button" className="nav-item" onClick={handleLogout}>
             <span className="icon">🚪</span>
             退出登录
           </button>
