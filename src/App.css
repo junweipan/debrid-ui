@@ -398,6 +398,53 @@ h3 {
   box-shadow: 0 0 0 3px rgba(112, 154, 255, 0.12);
 }
 
+.verify-page-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+  background: radial-gradient(
+      circle at 20% 20%,
+      rgba(112, 154, 255, 0.25),
+      transparent 45%
+    ),
+    radial-gradient(
+      circle at 80% 20%,
+      rgba(255, 111, 158, 0.3),
+      transparent 55%
+    ),
+    var(--bg, #02040a);
+}
+
+.verify-card {
+  width: min(420px, 100%);
+  border-radius: 28px;
+  border: 1px solid var(--border-soft);
+  background: rgba(5, 8, 20, 0.85);
+  backdrop-filter: blur(24px);
+  padding: 40px;
+  box-shadow: 0 50px 120px rgba(0, 0, 0, 0.55);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.verify-status {
+  margin: 0;
+  font-size: 15px;
+  color: #f5f7ff;
+}
+
+.verify-status-success {
+  color: #4cff9c;
+}
+
+.verify-status-error {
+  color: #ff5f6d;
+}
+
 .host-filter-input:hover:not(:focus) {
   border-color: rgba(255, 255, 255, 0.15);
 }
