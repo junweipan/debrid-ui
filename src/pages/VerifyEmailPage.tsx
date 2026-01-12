@@ -55,6 +55,13 @@ export function VerifyEmailPage({ onVerified }: VerifyEmailPageProps) {
           redirectTimeout = window.setTimeout(() => {
             navigate("/", { replace: true });
           }, 900);
+        } else if (payload?.success && !payload?.value?.token) {
+          setState("success");
+          setMessage(payload.value.message);
+
+          redirectTimeout = window.setTimeout(() => {
+            navigate("/login", { replace: true });
+          }, 900);
         } else {
           throw new Error("Invalid response");
         }
