@@ -6,6 +6,7 @@ import { HostStatusPage } from "./pages/HostStatusPage";
 import { LoginPage } from "./pages/LoginPage";
 import { ToolsRecommendationPage } from "./pages/ToolsRecommendationPage";
 import { VerifyEmailPage } from "./pages/VerifyEmailPage";
+import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 
 function App() {
   const [isAuthenticated, setAuthenticated] = useState(false);
@@ -85,6 +86,7 @@ function App() {
           path="/verify-email"
           element={<VerifyEmailPage onVerified={handleLoginSuccess} />}
         />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route
           path="*"
           element={<Navigate to={isAuthenticated ? "/" : "/login"} replace />}

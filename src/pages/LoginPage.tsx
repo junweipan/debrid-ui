@@ -28,6 +28,10 @@ export function LoginPage({ onSuccess }: LoginPageProps) {
   const [pendingVerification, setPendingVerification] = useState(false);
   const [isRequestingVerification, setRequestingVerification] = useState(false);
 
+  const handleForgotPassword = () => {
+    navigate("/reset-password");
+  };
+
   const handleFieldChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     setCredentials((prev) => ({ ...prev, [name]: value }));
@@ -190,6 +194,14 @@ export function LoginPage({ onSuccess }: LoginPageProps) {
             disabled={isSubmitting}
           >
             {isSubmitting ? "正在登录…" : "登录"}
+          </button>
+          <button
+            type="button"
+            className="ghost-button login-verify-button"
+            onClick={handleForgotPassword}
+            disabled={isSubmitting}
+          >
+            忘记密码？
           </button>
           <p className="login-hint">
             示例账号: {SAMPLE_EMAIL} · {SAMPLE_PASSWORD}
