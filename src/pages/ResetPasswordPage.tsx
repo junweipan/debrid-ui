@@ -153,15 +153,6 @@ export function ResetPasswordPage() {
               {status.message}
             </p>
           )}
-          {!hasSuccessfulRequest && (
-            <button
-              type="submit"
-              className="primary-button login-button"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "发送中…" : "发送密码重置邮件"}
-            </button>
-          )}
           {redirectCountdown !== null && (
             <p className="login-hint">
               {redirectCountdown} 秒后将自动返回首页…
