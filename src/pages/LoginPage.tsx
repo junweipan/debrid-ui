@@ -32,6 +32,10 @@ export function LoginPage({ onSuccess }: LoginPageProps) {
     navigate("/reset-password");
   };
 
+  const handleRegister = () => {
+    navigate("/register");
+  };
+
   const handleFieldChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     setCredentials((prev) => ({ ...prev, [name]: value }));
@@ -76,14 +80,6 @@ export function LoginPage({ onSuccess }: LoginPageProps) {
         throw new Error("Email mismatch");
       }
 
-      if (!user.email_verified) {
-        setInfoVariant("warning");
-        setInfoMessage(
-          "you haven't active your account, please click the button to send activate link to your email."
-        );
-        setPendingVerification(true);
-        return;
-      }
 
       localStorage.setItem("authToken", token as string);
       setInfoMessage(null);
@@ -98,49 +94,6 @@ export function LoginPage({ onSuccess }: LoginPageProps) {
     }
   };
 
-  const handleRequestVerification = async () => {
-    if (
-      isRequestingVerification ||
-      !credentials.email ||
-      !credentials.password
-    ) {
-      return;
-    }
-
-    setRequestingVerification(true);
-    setInfoVariant("neutral");
-    setInfoMessage("Sending activation link...");
-
-    try {
-      const normalizedEmail = credentials.email.trim();
-      const response = await fetch(
-        "http://localhost:4000/users/register/request-verification",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: normalizedEmail,
-            password: credentials.password,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Request failed");
-      }
-
-      await response.json();
-      setInfoVariant("success");
-      setInfoMessage("Activation email sent. Please check your inbox.");
-    } catch {
-      setInfoVariant("warning");
-      setInfoMessage(
-        "Failed to send activation email. Please try again later."
-      );
-    } finally {
-      setRequestingVerification(false);
-    }
-  };
 
   return (
     <div className="login-shell">
@@ -178,16 +131,6 @@ export function LoginPage({ onSuccess }: LoginPageProps) {
               {infoMessage}
             </p>
           )}
-          {pendingVerification && (
-            <button
-              type="button"
-              className="ghost-button login-verify-button"
-              onClick={handleRequestVerification}
-              disabled={isRequestingVerification}
-            >
-              {isRequestingVerification ? "发送激活邮件中…" : "发送激活邮件"}
-            </button>
-          )}
           <button
             type="submit"
             className="primary-button login-button"
@@ -202,6 +145,14 @@ export function LoginPage({ onSuccess }: LoginPageProps) {
             disabled={isSubmitting}
           >
             忘记密码？
+          </button>
+          <button
+            type="button"
+            className="ghost-button login-verify-button"
+            onClick={handleRegister}
+            disabled={isSubmitting}
+          >
+            创建新账户
           </button>
           <p className="login-hint">
             示例账号: {SAMPLE_EMAIL} · {SAMPLE_PASSWORD}

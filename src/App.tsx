@@ -4,8 +4,8 @@ import "./App.css";
 import { DownloaderPage } from "./pages/DownloaderPage";
 import { HostStatusPage } from "./pages/HostStatusPage";
 import { LoginPage } from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 import { ToolsRecommendationPage } from "./pages/ToolsRecommendationPage";
-import { VerifyEmailPage } from "./pages/VerifyEmailPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 
 function App() {
@@ -53,6 +53,16 @@ function App() {
           }
         />
         <Route
+          path="/register"
+          element={
+            isAuthenticated ? (
+              <Navigate to="/" replace />
+            ) : (
+              <RegisterPage />
+            )
+          }
+        />
+        <Route
           path="/"
           element={
             isAuthenticated ? (
@@ -81,10 +91,6 @@ function App() {
               <Navigate to="/login" replace />
             )
           }
-        />
-        <Route
-          path="/verify-email"
-          element={<VerifyEmailPage onVerified={handleLoginSuccess} />}
         />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route
