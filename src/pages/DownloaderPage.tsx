@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAtom } from "jotai";
+import { userAtom } from "../atoms/userAtoms";
 
 type DownloadSnapshot = {
   id: string;
@@ -63,25 +65,7 @@ const downloads: DownloadSnapshot[] = [
   },
 ];
 
-const stats = [
-  { label: "Active slots", value: "08", delta: "+2 vs last hour" },
-  { label: "Decrypted today", value: "182 GB", delta: "96% success rate" },
-  { label: "Parallel CDNs", value: "05", delta: "Auto load-balanced" },
-];
-
-const quickActions = [
-  { label: "Auto extract", detail: "Unpack archives after download" },
-  { label: "Share link", detail: "Create ephemeral share token" },
-  { label: "Schedule", detail: "Defer to low-power window" },
-];
-
-const filters = [
-  "All",
-  "Downloading",
-  "Queued",
-  "Completed",
-  "Errored",
-] as const;
+const filters = ["All", "Errored"] as const;
 
 type Filter = (typeof filters)[number];
 type ApiStatus = "idle" | "loading" | "success" | "error";
@@ -97,12 +81,24 @@ type DownloaderPageProps = {
 
 export function DownloaderPage({ onLogout }: DownloaderPageProps) {
   const navigate = useNavigate();
+  const [user] = useAtom(userAtom);
   const [activeFilter, setActiveFilter] = useState<Filter>("All");
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [accountInfo, setAccountInfo] = useState<AccountInfoState>({
     status: "idle",
     message: "Tap Auto extract to fetch account info.",
   });
+
+  // Compute stats from user data
+  const stats = [
+    {
+      label: "下载剩余次数",
+      value: String(user?.balance_left ?? "—"),
+      delta: "",
+    },
+    { label: "已使用流量", value: `${user?.data_used ?? "—"} GB`, delta: "" },
+    { label: "成功转存", value: String(user?.parser_count ?? "—"), delta: "" },
+  ];
 
   useEffect(() => {
     if (!localStorage.getItem("authToken")) {
@@ -136,7 +132,7 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
           headers: {
             Accept: "application/json",
           },
-        }
+        },
       );
 
       if (!response.ok) {
@@ -152,12 +148,6 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
       const message =
         error instanceof Error ? error.message : "Unable to fetch account info";
       setAccountInfo({ status: "error", message });
-    }
-  };
-
-  const handleQuickAction = (label: string) => {
-    if (label === "Auto extract") {
-      void handleAutoExtract();
     }
   };
 
@@ -265,47 +255,18 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
           <div className="composer-header">
             <div>
               <p className="eyebrow">New resource</p>
-              <h2>Drop a magnet link or hoster URL</h2>
+              <h2>复制rapidgator链接，可多行同时粘贴，用回车换行符分隔</h2>
             </div>
-            <button type="button" className="ghost-button">
-              Import from clipboard
-            </button>
           </div>
           <div className="composer-body">
             <textarea
               className="composer-input"
-              placeholder="magnet:?xt=urn:btih:… or https://hoster.com/file/abcd"
+              placeholder="use rapidgator URL, e.g., https://rapidgator.net/file/.../JUR-748.mp4.html"
               rows={3}
             />
-            <div className="chip-row">
-              {["High priority", "Use dedicated IP", "Auto cleanup"].map(
-                (chip) => (
-                  <label key={chip} className="chip">
-                    <input
-                      type="checkbox"
-                      defaultChecked={chip === "High priority"}
-                    />
-                    <span>{chip}</span>
-                  </label>
-                )
-              )}
-            </div>
             <div className="composer-actions">
-              <div className="quick-grid">
-                {quickActions.map((action) => (
-                  <button
-                    type="button"
-                    key={action.label}
-                    className="quick-action"
-                    onClick={() => handleQuickAction(action.label)}
-                  >
-                    <p>{action.label}</p>
-                    <span>{action.detail}</span>
-                  </button>
-                ))}
-              </div>
               <button type="button" className="primary-button">
-                Add to downloader
+                开始解析
               </button>
             </div>
           </div>
@@ -335,9 +296,6 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
                 </button>
               ))}
             </div>
-            <button type="button" className="ghost-button">
-              New queue preset
-            </button>
           </div>
           <div
             className={`api-panel status-${accountInfo.status}`}
@@ -364,9 +322,6 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
                     <p className="download-id">{item.id}</p>
                     <h3>{item.label}</h3>
                   </div>
-                  <button type="button" className="icon-button">
-                    ⋯
-                  </button>
                 </header>
                 <div className="meta-row">
                   <span>{item.size}</span>

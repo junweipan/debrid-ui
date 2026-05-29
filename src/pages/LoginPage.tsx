@@ -1,5 +1,7 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAtom } from "jotai";
+import { userAtom, tokenAtom } from "../atoms/userAtoms";
 
 const SAMPLE_EMAIL = "panjunweide@gmail.com";
 const SAMPLE_PASSWORD = "secret123";
@@ -15,6 +17,8 @@ type LoginPageProps = {
 
 export function LoginPage({ onSuccess }: LoginPageProps) {
   const navigate = useNavigate();
+  const [, setUser] = useAtom(userAtom);
+  const [, setToken] = useAtom(tokenAtom);
   const [credentials, setCredentials] = useState<LoginCredentials>({
     email: "",
     password: "",
@@ -80,8 +84,9 @@ export function LoginPage({ onSuccess }: LoginPageProps) {
         throw new Error("Email mismatch");
       }
 
-
       localStorage.setItem("authToken", token as string);
+      setUser(user);
+      setToken(token as string);
       setInfoMessage(null);
       onSuccess();
       navigate("/", { replace: true });
@@ -93,7 +98,6 @@ export function LoginPage({ onSuccess }: LoginPageProps) {
       setSubmitting(false);
     }
   };
-
 
   return (
     <div className="login-shell">
