@@ -1,0 +1,129 @@
+.topup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.topup-modal {
+  background: #1e1e2e;
+  border-radius: 12px;
+  padding: 28px 24px;
+  min-width: 320px;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.topup-modal h3 {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.topup-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #444;
+  background: #2a2a3e;
+  color: #fff;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.topup-error {
+  color: #f87171;
+  margin-top: 8px;
+  margin-bottom: 0;
+  font-size: 13px;
+}
+
+.topup-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.topup-actions .primary-button {
+  flex: 1;
+}
+
+.topup-cancel-button {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #444;
+  background: transparent;
+  color: #ccc;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.topup-stat-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.topup-stat-button {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.topup-success-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #22c55e;
+  color: #fff;
+  padding: 14px 20px;
+  border-radius: 10px;
+  z-index: 1001;
+  font-size: 14px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+.topup-result-modal {
+  text-align: center;
+}
+
+.topup-result-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: bold;
+  margin: 0 auto 16px;
+}
+
+.topup-result-icon--success {
+  background: #16a34a;
+  color: #fff;
+}
+
+.topup-result-icon--error {
+  background: #dc2626;
+  color: #fff;
+}
+
+.topup-result-title {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+
+.topup-result-message {
+  color: #aaa;
+  font-size: 14px;
+  margin: 0 0 20px;
+  line-height: 1.5;
+}
+
+.topup-result-close {
+  width: 100%;
+}

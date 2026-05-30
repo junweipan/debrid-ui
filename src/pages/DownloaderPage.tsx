@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
 import { userAtom } from "../atoms/userAtoms";
+import "../styles/TopUpModal.css";
 
 type DownloadSnapshot = {
   id: string;
@@ -88,13 +89,25 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
     status: "idle",
     message: "Tap Auto extract to fetch account info.",
   });
+  const [isTopUpModalOpen, setTopUpModalOpen] = useState(false);
+  const [giftCardInput, setGiftCardInput] = useState("");
+  const [topUpStatus, setTopUpStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
+  const [topUpMessage, setTopUpMessage] = useState("");
+  const [isTopUpResultOpen, setTopUpResultOpen] = useState(false);
 
-  // Compute stats from user data
-  const stats = [
+  const stats: {
+    label: string;
+    value: string;
+    delta: string;
+    showTopUp?: boolean;
+  }[] = [
     {
       label: "下载剩余次数",
       value: String(user?.balance_left ?? "—"),
       delta: "",
+      showTopUp: true,
     },
     { label: "已使用流量", value: `${user?.data_used ?? "—"} GB`, delta: "" },
     { label: "成功转存", value: String(user?.parser_count ?? "—"), delta: "" },
@@ -148,6 +161,42 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
       const message =
         error instanceof Error ? error.message : "Unable to fetch account info";
       setAccountInfo({ status: "error", message });
+    }
+  };
+
+  const handleTopUpConfirm = async () => {
+    if (!giftCardInput.trim()) return;
+    setTopUpStatus("loading");
+    try {
+      const response = await fetch("http://localhost:4000/gift-cards/redeem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          card_number: giftCardInput.trim(),
+          email: user?.email,
+        }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setTopUpStatus("success");
+        setTopUpMessage(`成功充值${data.value.redeemed_value}`);
+      }else {
+        setTopUpStatus("error");
+        setTopUpMessage(
+          `充值失败：${data.error ?? "未知错误"}。如有疑问请联系微信：panjunweide`,
+        );
+      }
+      setTopUpModalOpen(false);
+      setGiftCardInput("");
+      setTopUpResultOpen(true);
+    } catch (error) {
+        setTopUpStatus("error");
+        setTopUpMessage(
+          `充值失败：${error instanceof Error ? error.message : "未知错误"}。如有疑问请联系微信：panjunweide`,
+        );
+      setTopUpModalOpen(false);
+      setGiftCardInput("");
+      setTopUpResultOpen(true);
     }
   };
 
@@ -245,8 +294,10 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
           <div className="user-pill">
             <span className="status-dot" />
             <div>
-              <p className="user-label">Session: orbital@stack</p>
-              <p className="user-note">Premium · exp 12 Feb</p>
+              <p className="user-label">{user?.email ?? "—"}</p>
+              <p className="user-note">
+                {user && user.balance_left > 0 ? "Premium" : "Standard"}
+              </p>
             </div>
           </div>
         </header>
@@ -276,7 +327,23 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
           {stats.map((item) => (
             <article key={item.label} className="stat-card">
               <p className="eyebrow">{item.label}</p>
-              <p className="stat-value">{item.value}</p>
+              <div className="topup-stat-row">
+                <p className="stat-value">{item.value}</p>
+                {item.showTopUp && (
+                  <button
+                    type="button"
+                    className="primary-button topup-stat-button"
+                    onClick={() => {
+                      setTopUpStatus("idle");
+                      setTopUpMessage("");
+                      setGiftCardInput("");
+                      setTopUpModalOpen(true);
+                    }}
+                  >
+                    充值
+                  </button>
+                )}
+              </div>
               <p className="stat-delta">{item.delta}</p>
             </article>
           ))}
@@ -337,6 +404,79 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
           </div>
         </section>
       </main>
+
+      {/* Top Up Modal */}
+      {isTopUpModalOpen && (
+        <div className="topup-overlay" onClick={() => setTopUpModalOpen(false)}>
+          <div className="topup-modal" onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ marginTop: 0, marginBottom: "16px" }}>请输入充值码</h3>
+            <input
+              type="text"
+              className="topup-input"
+              value={giftCardInput}
+              onChange={(e) => setGiftCardInput(e.target.value)}
+              placeholder="例如: JU8JM-UUA7J-WO6NF"
+            />
+            <div className="topup-actions">
+              <button
+                type="button"
+                className="primary-button"
+                disabled={topUpStatus === "loading"}
+                onClick={handleTopUpConfirm}
+              >
+                {topUpStatus === "loading" ? "处理中…" : "确认"}
+              </button>
+              <button
+                type="button"
+                className="topup-cancel-button"
+                onClick={() => setTopUpModalOpen(false)}
+              >
+                取消
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Top Up Result Modal */}
+      {isTopUpResultOpen && (
+        <div
+          className="topup-overlay"
+          onClick={() => {
+            setTopUpResultOpen(false);
+            if (topUpStatus === "success") window.location.reload();
+          }}
+        >
+          <div
+            className="topup-modal topup-result-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              className={`topup-result-icon ${
+                topUpStatus === "success"
+                  ? "topup-result-icon--success"
+                  : "topup-result-icon--error"
+              }`}
+            >
+              {topUpStatus === "success" ? "✓" : "✕"}
+            </div>
+            <h3 className="topup-result-title">
+              {topUpStatus === "success" ? "充值成功" : "充值失败"}
+            </h3>
+            <p className="topup-result-message">{topUpMessage}</p>
+            <button
+              type="button"
+              className="primary-button topup-result-close"
+              onClick={() => {
+                setTopUpResultOpen(false);
+                if (topUpStatus === "success") window.location.reload();
+              }}
+            >
+              确认
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
