@@ -96,6 +96,16 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
   >("idle");
   const [topUpMessage, setTopUpMessage] = useState("");
   const [isTopUpResultOpen, setTopUpResultOpen] = useState(false);
+  const [isResetPasswordModalOpen, setResetPasswordModalOpen] = useState(false);
+  const [tempPasswordInput, setTempPasswordInput] = useState("");
+  const [newPasswordInput, setNewPasswordInput] = useState("");
+  const [confirmNewPasswordInput, setConfirmNewPasswordInput] = useState("");
+  const [resetPasswordStatus, setResetPasswordStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
+  const [resetPasswordMessage, setResetPasswordMessage] = useState("");
+  const [isResetPasswordResultOpen, setResetPasswordResultOpen] =
+    useState(false);
 
   const stats: {
     label: string;
@@ -180,7 +190,7 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
       if (data.success) {
         setTopUpStatus("success");
         setTopUpMessage(`成功充值${data.value.redeemed_value}`);
-      }else {
+      } else {
         setTopUpStatus("error");
         setTopUpMessage(
           `充值失败：${data.error ?? "未知错误"}。如有疑问请联系微信：panjunweide`,
@@ -190,10 +200,10 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
       setGiftCardInput("");
       setTopUpResultOpen(true);
     } catch (error) {
-        setTopUpStatus("error");
-        setTopUpMessage(
-          `充值失败：${error instanceof Error ? error.message : "未知错误"}。如有疑问请联系微信：panjunweide`,
-        );
+      setTopUpStatus("error");
+      setTopUpMessage(
+        `充值失败：${error instanceof Error ? error.message : "未知错误"}。如有疑问请联系微信：panjunweide`,
+      );
       setTopUpModalOpen(false);
       setGiftCardInput("");
       setTopUpResultOpen(true);
@@ -205,6 +215,86 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
     localStorage.removeItem("authToken");
     onLogout();
     navigate("/login", { replace: true });
+  };
+
+  const handleOpenResetPasswordModal = () => {
+    setSidebarOpen(false);
+    setTempPasswordInput("");
+    setNewPasswordInput("");
+    setConfirmNewPasswordInput("");
+    setResetPasswordStatus("idle");
+    setResetPasswordMessage("");
+    setResetPasswordModalOpen(true);
+  };
+
+  const handleResetPassword = async () => {
+    const tempPassword = tempPasswordInput.trim();
+    const newPassword = newPasswordInput.trim();
+    const confirmPassword = confirmNewPasswordInput.trim();
+
+    if (!tempPassword || !newPassword || !confirmPassword) {
+      setResetPasswordStatus("error");
+      setResetPasswordMessage("请完整填写临时密码、新密码和确认密码。");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setResetPasswordStatus("error");
+      setResetPasswordMessage("两次输入的新密码不一致，请重新确认。");
+      return;
+    }
+
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      setResetPasswordStatus("error");
+      setResetPasswordMessage("登录已过期，请重新登录后再试。");
+      return;
+    }
+
+    setResetPasswordStatus("loading");
+    setResetPasswordMessage("");
+
+    try {
+      const response = await fetch(
+        "http://localhost:4000/users/reset-password",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            temp_password: tempPassword,
+            new_password: newPassword,
+          }),
+        },
+      );
+
+      const data = await response.json();
+      if (!response.ok || !data?.success) {
+        const errorMessage =
+          data?.error ??
+          data?.value?.message ??
+          `重置失败（HTTP ${response.status}）`;
+        throw new Error(errorMessage);
+      }
+
+      setResetPasswordStatus("success");
+      setResetPasswordMessage(
+        data?.value?.message ?? "密码重置成功，请使用新密码登录。",
+      );
+      setTempPasswordInput("");
+      setNewPasswordInput("");
+      setConfirmNewPasswordInput("");
+    } catch (error) {
+      setResetPasswordStatus("error");
+      setResetPasswordMessage(
+        error instanceof Error ? error.message : "重置密码失败，请稍后重试。",
+      );
+    } finally {
+      setResetPasswordModalOpen(false);
+      setResetPasswordResultOpen(true);
+    }
   };
 
   return (
@@ -252,6 +342,14 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
           >
             <span className="icon">📦</span>
             下载工具推荐
+          </button>
+          <button
+            type="button"
+            className="nav-item"
+            onClick={handleOpenResetPasswordModal}
+          >
+            <span className="icon">🔒</span>
+            重置密码
           </button>
           <button type="button" className="nav-item" onClick={handleLogout}>
             <span className="icon">🚪</span>
@@ -471,6 +569,107 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
                 setTopUpResultOpen(false);
                 if (topUpStatus === "success") window.location.reload();
               }}
+            >
+              确认
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Reset Password Modal */}
+      {isResetPasswordModalOpen && (
+        <div
+          className="topup-overlay"
+          onClick={() => setResetPasswordModalOpen(false)}
+        >
+          <div className="topup-modal" onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ marginTop: 0, marginBottom: "16px" }}>重置密码</h3>
+            <div className="topup-actions" style={{ marginTop: 0 }}>
+              <input
+                type="password"
+                className="topup-input"
+                value={tempPasswordInput}
+                onChange={(e) => setTempPasswordInput(e.target.value)}
+                placeholder="临时密码 / 当前密码"
+              />
+            </div>
+            <div className="topup-actions" style={{ marginTop: "12px" }}>
+              <input
+                type="password"
+                className="topup-input"
+                value={newPasswordInput}
+                onChange={(e) => setNewPasswordInput(e.target.value)}
+                placeholder="新密码"
+              />
+            </div>
+            <div className="topup-actions" style={{ marginTop: "12px" }}>
+              <input
+                type="password"
+                className="topup-input"
+                value={confirmNewPasswordInput}
+                onChange={(e) => setConfirmNewPasswordInput(e.target.value)}
+                placeholder="确认新密码"
+              />
+            </div>
+            {resetPasswordMessage && (
+              <p
+                className={
+                  resetPasswordStatus === "success"
+                    ? "topup-success-text"
+                    : "topup-error"
+                }
+              >
+                {resetPasswordMessage}
+              </p>
+            )}
+            <div className="topup-actions">
+              <button
+                type="button"
+                className="primary-button"
+                disabled={resetPasswordStatus === "loading"}
+                onClick={handleResetPassword}
+              >
+                {resetPasswordStatus === "loading" ? "提交中…" : "提交"}
+              </button>
+              <button
+                type="button"
+                className="topup-cancel-button"
+                onClick={() => setResetPasswordModalOpen(false)}
+              >
+                取消
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reset Password Result Modal */}
+      {isResetPasswordResultOpen && (
+        <div
+          className="topup-overlay"
+          onClick={() => setResetPasswordResultOpen(false)}
+        >
+          <div
+            className="topup-modal topup-result-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              className={`topup-result-icon ${
+                resetPasswordStatus === "success"
+                  ? "topup-result-icon--success"
+                  : "topup-result-icon--error"
+              }`}
+            >
+              {resetPasswordStatus === "success" ? "✓" : "✕"}
+            </div>
+            <h3 className="topup-result-title">
+              {resetPasswordStatus === "success" ? "重置成功" : "重置失败"}
+            </h3>
+            <p className="topup-result-message">{resetPasswordMessage}</p>
+            <button
+              type="button"
+              className="primary-button topup-result-close"
+              onClick={() => setResetPasswordResultOpen(false)}
             >
               确认
             </button>

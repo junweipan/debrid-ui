@@ -1,10 +1,16 @@
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
 import { userAtom, tokenAtom } from "../atoms/userAtoms";
 
 const SAMPLE_EMAIL = "panjunweide@gmail.com";
-const SAMPLE_PASSWORD = "secret123";
+const SAMPLE_PASSWORD = "123456";
 
 type LoginCredentials = {
   email: string;
@@ -29,11 +35,106 @@ export function LoginPage({ onSuccess }: LoginPageProps) {
   const [infoVariant, setInfoVariant] = useState<
     "neutral" | "warning" | "success"
   >("neutral");
-  const [pendingVerification, setPendingVerification] = useState(false);
-  const [isRequestingVerification, setRequestingVerification] = useState(false);
+  const [isForgotPasswordModalOpen, setForgotPasswordModalOpen] =
+    useState(false);
+  const [isSendingTemporaryPassword, setSendingTemporaryPassword] =
+    useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
+  const [forgotPasswordError, setForgotPasswordError] = useState<string | null>(
+    null,
+  );
+  const forgotPasswordEmailInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isForgotPasswordModalOpen) {
+      forgotPasswordEmailInputRef.current?.focus();
+    }
+  }, [isForgotPasswordModalOpen]);
 
   const handleForgotPassword = () => {
-    navigate("/reset-password");
+    setForgotPasswordEmail(credentials.email.trim());
+    setForgotPasswordError(null);
+    setForgotPasswordModalOpen(true);
+    setInfoMessage(null);
+    setError(null);
+  };
+
+  const handleForgotPasswordCancel = () => {
+    if (isSendingTemporaryPassword) {
+      return;
+    }
+    setForgotPasswordError(null);
+    setForgotPasswordModalOpen(false);
+  };
+
+  const handleForgotPasswordConfirm = async () => {
+    if (isSendingTemporaryPassword) {
+      return;
+    }
+
+    const normalizedEmail = forgotPasswordEmail.trim().toLowerCase();
+
+    if (!normalizedEmail) {
+      setForgotPasswordError("请输入注册邮箱。");
+      return;
+    }
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(normalizedEmail)) {
+      setForgotPasswordError("邮箱格式不正确，请重新输入。");
+      return;
+    }
+
+    setSendingTemporaryPassword(true);
+    setForgotPasswordError(null);
+    setError(null);
+    setInfoMessage(null);
+
+    try {
+      const response = await fetch(
+        "http://localhost:4000/users/forgot-password",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email: normalizedEmail }),
+        },
+      );
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error("NOT_FOUND");
+        }
+        throw new Error("REQUEST_FAILED");
+      }
+
+      const payload = await response.json();
+
+      if (!payload?.success) {
+        throw new Error("Invalid response");
+      }
+
+      setForgotPasswordModalOpen(false);
+      setInfoVariant("success");
+      setInfoMessage("临时密码已发送到您的注册邮箱，请注意查收邮件。");
+    } catch (error) {
+      setInfoVariant("warning");
+      if (error instanceof Error && error.message === "NOT_FOUND") {
+        setInfoMessage("该邮箱未注册，请检查后重试。");
+      } else {
+        setInfoMessage("临时密码发送失败，请稍后重试。");
+      }
+    } finally {
+      setSendingTemporaryPassword(false);
+    }
+  };
+
+  const handleForgotPasswordModalSubmit = (
+    event: FormEvent<HTMLFormElement>,
+  ) => {
+    event.preventDefault();
+    handleForgotPasswordConfirm();
   };
 
   const handleRegister = () => {
@@ -54,7 +155,6 @@ export function LoginPage({ onSuccess }: LoginPageProps) {
     setSubmitting(true);
     setError(null);
     setInfoMessage(null);
-    setPendingVerification(false);
 
     try {
       const normalizedEmail = credentials.email.trim();
@@ -92,8 +192,7 @@ export function LoginPage({ onSuccess }: LoginPageProps) {
       navigate("/", { replace: true });
     } catch {
       setInfoMessage(null);
-      setPendingVerification(false);
-      setError("Login failed. Please check your credentials and try again.");
+      setError("登录失败，请检查邮箱和密码后重试。");
     } finally {
       setSubmitting(false);
     }
@@ -163,6 +262,69 @@ export function LoginPage({ onSuccess }: LoginPageProps) {
           </p>
         </form>
       </div>
+
+      {isForgotPasswordModalOpen && (
+        <div
+          className="login-modal-overlay"
+          role="presentation"
+          onClick={handleForgotPasswordCancel}
+        >
+          <form
+            className="login-modal"
+            onSubmit={handleForgotPasswordModalSubmit}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="forgot-password-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h3 id="forgot-password-title">确认发送临时密码？</h3>
+            <p>
+              请输入您的注册邮箱，系统会重置当前密码并将临时密码发送到该邮箱。
+            </p>
+            <label
+              className="login-modal-input-field"
+              htmlFor="forgot-password-email"
+            >
+              <span>注册邮箱</span>
+              <input
+                ref={forgotPasswordEmailInputRef}
+                id="forgot-password-email"
+                type="email"
+                autoComplete="email"
+                value={forgotPasswordEmail}
+                onChange={(event) => {
+                  setForgotPasswordEmail(event.target.value);
+                  if (forgotPasswordError) {
+                    setForgotPasswordError(null);
+                  }
+                }}
+                placeholder="请输入注册邮箱"
+                disabled={isSendingTemporaryPassword}
+              />
+            </label>
+            {forgotPasswordError && (
+              <p className="login-modal-error">{forgotPasswordError}</p>
+            )}
+            <div className="login-modal-actions">
+              <button
+                type="button"
+                className="ghost-button"
+                onClick={handleForgotPasswordCancel}
+                disabled={isSendingTemporaryPassword}
+              >
+                取消
+              </button>
+              <button
+                type="submit"
+                className="primary-button"
+                disabled={isSendingTemporaryPassword}
+              >
+                {isSendingTemporaryPassword ? "发送中..." : "确认发送"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

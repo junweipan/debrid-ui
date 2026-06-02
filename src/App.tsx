@@ -7,7 +7,6 @@ import { HostStatusPage } from "./pages/HostStatusPage";
 import { LoginPage } from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import { ToolsRecommendationPage } from "./pages/ToolsRecommendationPage";
-import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { tokenAtom, userAtom } from "./atoms/userAtoms";
 
 function App() {
@@ -147,7 +146,6 @@ function App() {
             )
           }
         />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route
           path="*"
           element={<Navigate to={isAuthenticated ? "/" : "/login"} replace />}
