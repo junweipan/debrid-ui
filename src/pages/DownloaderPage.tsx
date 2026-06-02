@@ -4,91 +4,15 @@ import { useAtom } from "jotai";
 import { userAtom } from "../atoms/userAtoms";
 import "../styles/TopUpModal.css";
 
-type DownloadSnapshot = {
-  id: string;
-  label: string;
-  size: string;
-  speed: string;
-  eta: string;
-  status: "Downloading" | "Queued" | "Completed" | "Errored";
-  progress: number;
-  checksum?: string;
-};
-
-const downloads: DownloadSnapshot[] = [
-  {
-    id: "MAG-8F1A",
-    label: "The.Expanse.S06E01.2160p.WEBRip.DDP5.1",
-    size: "24.6 GB",
-    speed: "128 MB/s",
-    eta: "02m 12s",
-    status: "Downloading",
-    progress: 76,
-    checksum: "SHA256 · 6ca0d…f31a",
-  },
-  {
-    id: "TOR-A92C",
-    label: "Synthwave.vol.09.FLAC",
-    size: "4.2 GB",
-    speed: "—",
-    eta: "Queued",
-    status: "Queued",
-    progress: 0,
-  },
-  {
-    id: "MAG-11B0",
-    label: "Blender.Asset.Library.2025.1",
-    size: "12.1 GB",
-    speed: "94 MB/s",
-    eta: "56s",
-    status: "Downloading",
-    progress: 42,
-    checksum: "CRC32 · 2F4E66A1",
-  },
-  {
-    id: "DDL-55F1",
-    label: "ArcJet.Documentation.Bundle.pdf",
-    size: "980 MB",
-    speed: "—",
-    eta: "Ready",
-    status: "Completed",
-    progress: 100,
-    checksum: "MD5 · d1c7…b09d",
-  },
-  {
-    id: "MAG-2404",
-    label: "Foundation.S02E04.1080p.WEBRip",
-    size: "3.8 GB",
-    speed: "—",
-    eta: "Checksum failed",
-    status: "Errored",
-    progress: 12,
-  },
-];
-
-const filters = ["All", "Errored"] as const;
-
-type Filter = (typeof filters)[number];
-type ApiStatus = "idle" | "loading" | "success" | "error";
-
-type AccountInfoState = {
-  status: ApiStatus;
-  message: string;
-};
-
 type DownloaderPageProps = {
   onLogout: () => void;
 };
 
 export function DownloaderPage({ onLogout }: DownloaderPageProps) {
   const navigate = useNavigate();
-  const [user] = useAtom(userAtom);
-  const [activeFilter, setActiveFilter] = useState<Filter>("All");
+  const [user, setUser] = useAtom(userAtom);
+
   const [isSidebarOpen, setSidebarOpen] = useState(false);
-  const [accountInfo, setAccountInfo] = useState<AccountInfoState>({
-    status: "idle",
-    message: "Tap Auto extract to fetch account info.",
-  });
   const [isTopUpModalOpen, setTopUpModalOpen] = useState(false);
   const [giftCardInput, setGiftCardInput] = useState("");
   const [topUpStatus, setTopUpStatus] = useState<
@@ -106,6 +30,35 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
   const [resetPasswordMessage, setResetPasswordMessage] = useState("");
   const [isResetPasswordResultOpen, setResetPasswordResultOpen] =
     useState(false);
+  const [textareaContent, setTextareaContent] = useState("");
+  const [parseResults, setParseResults] = useState<any[]>([]);
+  const [parseStatus, setParseStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
+  const [parseMessage, setParseMessage] = useState("");
+  const [copiedDownloadUrl, setCopiedDownloadUrl] = useState<string | null>(
+    null,
+  );
+  const historyOriginalUrls = user?.original_urls ?? [];
+  const historyParsedUrls = user?.parsed_urls ?? [];
+  const [selectedHistoryKeys, setSelectedHistoryKeys] = useState<string[]>([]);
+
+  const historyRows = historyOriginalUrls.map((originalItem, index) => {
+    const parsedItem = historyParsedUrls[index];
+    return {
+      key: `${index}-${originalItem.url}`,
+      originalItem,
+      parsedItem,
+      parsedUrl: parsedItem?.url,
+    };
+  });
+
+  const selectableHistoryKeys = historyRows
+    .filter((row) => Boolean(row.parsedUrl))
+    .map((row) => row.key);
+  const isAllHistorySelected =
+    selectableHistoryKeys.length > 0 &&
+    selectableHistoryKeys.every((key) => selectedHistoryKeys.includes(key));
 
   const stats: {
     label: string;
@@ -140,39 +93,39 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
     return () => body.classList.remove("no-scroll");
   }, [isSidebarOpen]);
 
-  const visibleDownloads = downloads.filter((item) => {
-    if (activeFilter === "All") return true;
-    return item.status === activeFilter;
-  });
+  useEffect(() => {
+    const refreshUserProfile = async () => {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        return;
+      }
 
-  const handleAutoExtract = async () => {
-    setAccountInfo({ status: "loading", message: "Fetching account info…" });
-    try {
-      const response = await fetch(
-        "https://debrid-server.netlify.app/account/infos",
-        {
+      try {
+        const response = await fetch("http://localhost:4000/users/me", {
           method: "GET",
           headers: {
             Accept: "application/json",
+            Authorization: `Bearer ${token}`,
           },
-        },
-      );
+        });
 
-      if (!response.ok) {
-        throw new Error(`API responded with ${response.status}`);
+        if (!response.ok) {
+          return;
+        }
+
+        const payload = await response.json();
+        const latestUser = payload?.value?.user;
+
+        if (payload?.success && latestUser) {
+          setUser(latestUser);
+        }
+      } catch {
+        // Keep existing state when profile refresh fails.
       }
+    };
 
-      const payload = await response.json();
-      setAccountInfo({
-        status: "success",
-        message: JSON.stringify(payload, null, 2),
-      });
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Unable to fetch account info";
-      setAccountInfo({ status: "error", message });
-    }
-  };
+    void refreshUserProfile();
+  }, [setUser]);
 
   const handleTopUpConfirm = async () => {
     if (!giftCardInput.trim()) return;
@@ -215,6 +168,163 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
     localStorage.removeItem("authToken");
     onLogout();
     navigate("/login", { replace: true });
+  };
+
+  const handleBeginParse = async () => {
+    const urls = textareaContent
+      .split(/[\n\s,]+/)
+      .filter((url) => url.length > 0);
+
+    if (urls.length === 0) {
+      setParseStatus("error");
+      setParseMessage("请输入至少一个URL");
+      return;
+    }
+
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      setParseStatus("error");
+      setParseMessage("登录已过期，请重新登录后再试。");
+      return;
+    }
+
+    setParseStatus("loading");
+    setParseMessage("");
+    setParseResults([]);
+
+    try {
+      const response = await fetch(
+        "http://localhost:4000/transactions/parse-urls",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ urls }),
+        },
+      );
+
+      const data = await response.json();
+      if (!response.ok || !data?.success) {
+        const errorMessage = data?.error ?? "解析失败，请重试";
+        throw new Error(errorMessage);
+      }
+
+      setParseStatus("success");
+      setParseResults(data?.value?.results ?? []);
+      setParseMessage(
+        `成功解析 ${data?.value?.valid_urls_processed ?? 0} 个URL`,
+      );
+      if (user && data?.value?.balance_left !== undefined) {
+        setUser({
+          ...user,
+          balance_left: data.value.balance_left,
+        });
+      }
+    } catch (error) {
+      setParseStatus("error");
+      setParseMessage(
+        error instanceof Error ? error.message : "解析失败，请稍后重试",
+      );
+      setParseResults([]);
+    }
+  };
+
+  const handleCopyDownloadUrl = async (downloadUrl: string) => {
+    try {
+      await navigator.clipboard.writeText(downloadUrl);
+      setCopiedDownloadUrl(downloadUrl);
+      setTimeout(() => {
+        setCopiedDownloadUrl((current) =>
+          current === downloadUrl ? null : current,
+        );
+      }, 1500);
+    } catch {
+      setParseStatus("error");
+      setParseMessage("复制失败，请手动复制链接。");
+    }
+  };
+
+  const handleToggleHistorySelection = (key: string) => {
+    setSelectedHistoryKeys((current) =>
+      current.includes(key)
+        ? current.filter((item) => item !== key)
+        : [...current, key],
+    );
+  };
+
+  const handleSelectAllHistory = () => {
+    setSelectedHistoryKeys(isAllHistorySelected ? [] : selectableHistoryKeys);
+  };
+
+  const handleDeleteSelectedHistory = () => {
+    // TODO: implement backend delete API integration.
+  };
+
+  const handleExportSelectedHistory = async () => {
+    const selectedUrls = historyRows
+      .filter((row) => row.parsedUrl && selectedHistoryKeys.includes(row.key))
+      .map((row) => row.parsedUrl as string);
+
+    if (selectedUrls.length === 0) {
+      setParseStatus("error");
+      setParseMessage("请先选择要导出的链接。");
+      return;
+    }
+
+    const fileContent = selectedUrls.join("\n");
+
+    try {
+      const windowWithPicker = window as Window & {
+        showSaveFilePicker?: (options?: {
+          suggestedName?: string;
+          types?: Array<{
+            description?: string;
+            accept: Record<string, string[]>;
+          }>;
+        }) => Promise<{
+          createWritable: () => Promise<{
+            write: (content: string) => Promise<void>;
+            close: () => Promise<void>;
+          }>;
+        }>;
+      };
+
+      if (windowWithPicker.showSaveFilePicker) {
+        const fileHandle = await windowWithPicker.showSaveFilePicker({
+          suggestedName: "parsed-urls.txt",
+          types: [
+            {
+              description: "Text file",
+              accept: { "text/plain": [".txt"] },
+            },
+          ],
+        });
+
+        const writable = await fileHandle.createWritable();
+        await writable.write(fileContent);
+        await writable.close();
+      } else {
+        const blob = new Blob([fileContent], {
+          type: "text/plain;charset=utf-8",
+        });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = "parsed-urls.txt";
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        URL.revokeObjectURL(url);
+      }
+
+      setParseStatus("success");
+      setParseMessage(`已导出 ${selectedUrls.length} 条链接。`);
+    } catch {
+      setParseStatus("error");
+      setParseMessage("导出失败，请重试。");
+    }
   };
 
   const handleOpenResetPasswordModal = () => {
@@ -411,11 +521,18 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
             <textarea
               className="composer-input"
               placeholder="use rapidgator URL, e.g., https://rapidgator.net/file/.../JUR-748.mp4.html"
-              rows={3}
+              rows={8}
+              value={textareaContent}
+              onChange={(e) => setTextareaContent(e.target.value)}
             />
             <div className="composer-actions">
-              <button type="button" className="primary-button">
-                开始解析
+              <button
+                type="button"
+                className="primary-button"
+                disabled={parseStatus === "loading"}
+                onClick={handleBeginParse}
+              >
+                {parseStatus === "loading" ? "解析中…" : "开始解析"}
               </button>
             </div>
           </div>
@@ -447,60 +564,238 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
           ))}
         </section>
 
-        <section className="download-board">
-          <div className="board-header">
-            <div className="tab-row">
-              {filters.map((filter) => (
-                <button
-                  type="button"
-                  key={filter}
-                  className={`tab ${filter === activeFilter ? "active" : ""}`}
-                  onClick={() => setActiveFilter(filter)}
-                >
-                  {filter}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div
-            className={`api-panel status-${accountInfo.status}`}
-            aria-live="polite"
-          >
+        {parseMessage && (
+          <div className={`api-panel status-${parseStatus}`} aria-live="polite">
             <div className="api-panel-head">
               <span className="status-dot" />
               <p>
-                {accountInfo.status === "loading"
-                  ? "Loading account details"
-                  : "Account info"}
+                {parseStatus === "loading"
+                  ? "正在解析..."
+                  : parseStatus === "success"
+                    ? "解析成功"
+                    : "解析失败"}
               </p>
             </div>
-            <pre>{accountInfo.message}</pre>
+            <p style={{ margin: 0, color: "inherit" }}>{parseMessage}</p>
           </div>
-          <div className="download-list">
-            {visibleDownloads.map((item) => (
-              <article
-                key={item.id}
-                className={`download-card status-${item.status.toLowerCase()}`}
-              >
-                <header>
-                  <div>
-                    <p className="download-id">{item.id}</p>
-                    <h3>{item.label}</h3>
+        )}
+
+        {parseResults.length > 0 && (
+          <section className="download-board">
+            <div className="board-header">
+              <h2 style={{ margin: "0 0 16px" }}>解析结果</h2>
+            </div>
+            <div className="download-list">
+              {parseResults.map((result, index) => (
+                <article
+                  key={index}
+                  className={`download-card status-${result.status}`}
+                >
+                  <header>
+                    <div>
+                      <p className="download-id">{result.debrid_data?.name}</p>
+                      <h3>{result.original_url}</h3>
+                    </div>
+                  </header>
+                  <div className="meta-row">
+                    <span>{result.parsed_size?.raw}</span>
+                    <span>{result.debrid_data?.host}</span>
                   </div>
-                </header>
-                <div className="meta-row">
-                  <span>{item.size}</span>
-                  <span>Speed {item.speed}</span>
-                  <span>{item.eta}</span>
-                  {item.checksum && <span>{item.checksum}</span>}
+                  <div
+                    style={{
+                      marginTop: "12px",
+                      paddingTop: "12px",
+                      borderTop: "1px solid #444",
+                    }}
+                  >
+                    <p
+                      style={{
+                        fontSize: "12px",
+                        color: "#aaa",
+                        margin: "0 0 6px",
+                      }}
+                    >
+                      下载链接:
+                    </p>
+                    <a
+                      href={result.download_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        color: "#4ade80",
+                        wordBreak: "break-all",
+                        fontSize: "12px",
+                      }}
+                    >
+                      {result.download_url}
+                    </a>
+                    <button
+                      type="button"
+                      aria-label="Copy download url"
+                      onClick={() => handleCopyDownloadUrl(result.download_url)}
+                      style={{
+                        marginLeft: "8px",
+                        border: "1px solid #4b5563",
+                        background: "transparent",
+                        color: "#cbd5e1",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                        padding: "4px 8px",
+                        fontSize: "12px",
+                        verticalAlign: "middle",
+                      }}
+                    >
+                      {copiedDownloadUrl === result.download_url
+                        ? "已复制"
+                        : "📋"}
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {historyOriginalUrls.length > 0 && (
+          <section className="download-board">
+            <div className="board-header">
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "12px",
+                  marginBottom: "16px",
+                  flexWrap: "wrap",
+                }}
+              >
+                <h2 style={{ margin: 0 }}>历史记录</h2>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  <button
+                    type="button"
+                    className="topup-cancel-button"
+                    onClick={handleSelectAllHistory}
+                    disabled={selectableHistoryKeys.length === 0}
+                  >
+                    全选
+                  </button>
+                  <button
+                    type="button"
+                    className="topup-cancel-button"
+                    onClick={handleDeleteSelectedHistory}
+                    disabled={selectedHistoryKeys.length === 0}
+                    style={{ minWidth: "98px", whiteSpace: "nowrap" }}
+                  >
+                    删除已选
+                  </button>
+                  <button
+                    type="button"
+                    className="primary-button"
+                    onClick={handleExportSelectedHistory}
+                    disabled={selectedHistoryKeys.length === 0}
+                  >
+                    导出已选到记事本
+                  </button>
                 </div>
-                <div className="progress-track">
-                  <span style={{ width: `${item.progress}%` }} />
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
+              </div>
+            </div>
+            <div className="download-list">
+              {historyRows.map((row) => {
+                const { originalItem, parsedItem, parsedUrl, key } = row;
+                const isSelected = selectedHistoryKeys.includes(key);
+
+                return (
+                  <article key={key} className="download-card status-completed">
+                    <header>
+                      <div>
+                        <p className="download-id">
+                          {parsedItem?.created_at ?? originalItem.created_at}
+                        </p>
+                        <h3>{originalItem.url}</h3>
+                      </div>
+                    </header>
+                    <div className="meta-row">
+                      <span>来源: 历史解析</span>
+                      <span>{parsedUrl ? "已解析" : "未解析"}</span>
+                    </div>
+                    <div
+                      style={{
+                        marginTop: "12px",
+                        paddingTop: "12px",
+                        borderTop: "1px solid #444",
+                      }}
+                    >
+                      <p
+                        style={{
+                          fontSize: "12px",
+                          color: "#aaa",
+                          margin: "0 0 6px",
+                        }}
+                      >
+                        下载链接:
+                      </p>
+                      {parsedUrl ? (
+                        <>
+                          <label
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "6px",
+                              marginRight: "10px",
+                              fontSize: "12px",
+                              color: "#cbd5e1",
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => handleToggleHistorySelection(key)}
+                            />
+                            选择
+                          </label>
+                          <a
+                            href={parsedUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              color: "#4ade80",
+                              wordBreak: "break-all",
+                              fontSize: "12px",
+                            }}
+                          >
+                            {parsedUrl}
+                          </a>
+                          <button
+                            type="button"
+                            aria-label="Copy history download url"
+                            onClick={() => handleCopyDownloadUrl(parsedUrl)}
+                            style={{
+                              marginLeft: "8px",
+                              border: "1px solid #4b5563",
+                              background: "transparent",
+                              color: "#cbd5e1",
+                              borderRadius: "6px",
+                              cursor: "pointer",
+                              padding: "4px 8px",
+                              fontSize: "12px",
+                              verticalAlign: "middle",
+                            }}
+                          >
+                            {copiedDownloadUrl === parsedUrl ? "已复制" : "📋"}
+                          </button>
+                        </>
+                      ) : (
+                        <span style={{ color: "#9ca3af", fontSize: "12px" }}>
+                          暂无解析后的下载链接
+                        </span>
+                      )}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        )}
       </main>
 
       {/* Top Up Modal */}

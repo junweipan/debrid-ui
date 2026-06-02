@@ -14,6 +14,14 @@ export type User = {
   created_at: string;
   updated_at: string | null;
   last_login_at: string;
+  original_urls?: Array<{
+    url: string;
+    created_at: string;
+  }>;
+  parsed_urls?: Array<{
+    url: string;
+    created_at: string;
+  }>;
 };
 
 export const userAtom = atom<User | null>(null);
