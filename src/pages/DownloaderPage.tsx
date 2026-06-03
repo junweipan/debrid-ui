@@ -39,6 +39,7 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
   const [copiedDownloadUrl, setCopiedDownloadUrl] = useState<string | null>(
     null,
   );
+  const [isDeleteConfirmModalOpen, setDeleteConfirmModalOpen] = useState(false);
   const historyOriginalUrls = user?.original_urls ?? [];
   const historyParsedUrls = user?.parsed_urls ?? [];
   const [selectedHistoryKeys, setSelectedHistoryKeys] = useState<string[]>([]);
@@ -259,7 +260,91 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
   };
 
   const handleDeleteSelectedHistory = () => {
-    // TODO: implement backend delete API integration.
+    const selectedRows = historyRows.filter(
+      (row) => row.parsedUrl && selectedHistoryKeys.includes(row.key),
+    );
+
+    if (selectedRows.length === 0) {
+      setParseStatus("error");
+      setParseMessage("请先选择要删除的链接。");
+      return;
+    }
+
+    setDeleteConfirmModalOpen(true);
+  };
+
+  const handleConfirmDeleteSelectedHistory = async () => {
+    const selectedRows = historyRows.filter(
+      (row) => row.parsedUrl && selectedHistoryKeys.includes(row.key),
+    );
+
+    if (selectedRows.length === 0) {
+      setParseStatus("error");
+      setParseMessage("请先选择要删除的链接。");
+      return;
+    }
+
+    const originalUrls = selectedRows.map((row) => row.originalItem.url);
+    const parsedUrls = selectedRows
+      .map((row) => row.parsedUrl)
+      .filter((url): url is string => Boolean(url));
+
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      setParseStatus("error");
+      setParseMessage("登录已过期，请重新登录后再试。");
+      return;
+    }
+
+    setParseStatus("loading");
+    setParseMessage("正在删除已选历史记录...");
+    setDeleteConfirmModalOpen(false);
+
+    try {
+      const response = await fetch(
+        "http://localhost:4000/transactions/remove-urls",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            original_urls: originalUrls,
+            parsed_urls: parsedUrls,
+          }),
+        },
+      );
+
+      const data = await response.json();
+      if (!response.ok || !data?.success) {
+        const errorMessage = data?.error ?? "删除失败，请稍后重试";
+        throw new Error(errorMessage);
+      }
+
+      if (user) {
+        setUser({
+          ...user,
+          original_urls: (user.original_urls ?? []).filter(
+            (item) => !originalUrls.includes(item.url),
+          ),
+          parsed_urls: (user.parsed_urls ?? []).filter(
+            (item) => !parsedUrls.includes(item.url),
+          ),
+        });
+      }
+
+      setSelectedHistoryKeys([]);
+      setParseStatus("success");
+      setParseMessage(
+        `删除成功：原始链接 ${data?.value?.removed_original_urls ?? 0} 条，解析链接 ${data?.value?.removed_parsed_urls ?? 0} 条。`,
+      );
+    } catch (error) {
+      setParseStatus("error");
+      setParseMessage(
+        error instanceof Error ? error.message : "删除失败，请稍后重试",
+      );
+    }
   };
 
   const handleExportSelectedHistory = async () => {
@@ -968,6 +1053,38 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
             >
               确认
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirm Modal */}
+      {isDeleteConfirmModalOpen && (
+        <div
+          className="topup-overlay"
+          onClick={() => setDeleteConfirmModalOpen(false)}
+        >
+          <div className="topup-modal" onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ marginTop: 0, marginBottom: "12px" }}>确认删除</h3>
+            <p style={{ margin: 0, color: "#cbd5e1" }}>
+              确认删除已选择的 {selectedHistoryKeys.length}{" "}
+              条历史记录吗？删除后不可恢复。
+            </p>
+            <div className="topup-actions" style={{ marginTop: "16px" }}>
+              <button
+                type="button"
+                className="primary-button"
+                onClick={handleConfirmDeleteSelectedHistory}
+              >
+                确认删除
+              </button>
+              <button
+                type="button"
+                className="topup-cancel-button"
+                onClick={() => setDeleteConfirmModalOpen(false)}
+              >
+                取消
+              </button>
+            </div>
           </div>
         </div>
       )}
