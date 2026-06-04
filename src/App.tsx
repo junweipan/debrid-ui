@@ -33,13 +33,16 @@ function App() {
       setToken(storedToken);
 
       try {
-        const response = await fetch("http://localhost:4000/users/me", {
-          method: "GET",
-          headers: {
-            Accept: "application/json",
-            Authorization: `Bearer ${storedToken}`,
+        const response = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/users/me`,
+          {
+            method: "GET",
+            headers: {
+              Accept: "application/json",
+              Authorization: `Bearer ${storedToken}`,
+            },
           },
-        });
+        );
 
         if (!response.ok) {
           throw new Error("Session restore failed");

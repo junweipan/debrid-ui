@@ -47,21 +47,24 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:4000/users/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/users/register`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            password,
+          }),
         },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
-      });
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(
-          errorData.message || `Registration failed: ${response.statusText}`
+          errorData.message || `Registration failed: ${response.statusText}`,
         );
       }
 
@@ -148,10 +151,13 @@ export default function RegisterPage() {
 
         <div className="login-link">
           Already have an account?{" "}
-          <a href="/login" onClick={(e) => {
-            e.preventDefault();
-            navigate("/login");
-          }}>
+          <a
+            href="/login"
+            onClick={(e) => {
+              e.preventDefault();
+              navigate("/login");
+            }}
+          >
             Login here
           </a>
         </div>

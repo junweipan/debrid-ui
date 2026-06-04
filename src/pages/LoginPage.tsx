@@ -92,7 +92,7 @@ export function LoginPage({ onSuccess }: LoginPageProps) {
 
     try {
       const response = await fetch(
-        "http://localhost:4000/users/forgot-password",
+        `${import.meta.env.VITE_API_BASE_URL}/users/forgot-password`,
         {
           method: "POST",
           headers: {
@@ -159,14 +159,17 @@ export function LoginPage({ onSuccess }: LoginPageProps) {
     try {
       const normalizedEmail = credentials.email.trim();
       const normalizedEmailLower = normalizedEmail.toLowerCase();
-      const response = await fetch("http://localhost:4000/users/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: normalizedEmail,
-          password: credentials.password,
-        }),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/users/login`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: normalizedEmail,
+            password: credentials.password,
+          }),
+        },
+      );
 
       if (!response.ok) {
         throw new Error("Request failed");

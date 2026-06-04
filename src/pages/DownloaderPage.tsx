@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
 import { userAtom } from "../atoms/userAtoms";
@@ -94,52 +94,58 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
     return () => body.classList.remove("no-scroll");
   }, [isSidebarOpen]);
 
-  useEffect(() => {
-    const refreshUserProfile = async () => {
-      const token = localStorage.getItem("authToken");
-      if (!token) {
-        return;
-      }
+  const refreshUserProfile = useCallback(async () => {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      return;
+    }
 
-      try {
-        const response = await fetch("http://localhost:4000/users/me", {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/users/me`,
+        {
           method: "GET",
           headers: {
             Accept: "application/json",
             Authorization: `Bearer ${token}`,
           },
-        });
+        },
+      );
 
-        if (!response.ok) {
-          return;
-        }
-
-        const payload = await response.json();
-        const latestUser = payload?.value?.user;
-
-        if (payload?.success && latestUser) {
-          setUser(latestUser);
-        }
-      } catch {
-        // Keep existing state when profile refresh fails.
+      if (!response.ok) {
+        return;
       }
-    };
 
-    void refreshUserProfile();
+      const payload = await response.json();
+      const latestUser = payload?.value?.user;
+
+      if (payload?.success && latestUser) {
+        setUser(latestUser);
+      }
+    } catch {
+      // Keep existing state when profile refresh fails.
+    }
   }, [setUser]);
+
+  useEffect(() => {
+    void refreshUserProfile();
+  }, [refreshUserProfile]);
 
   const handleTopUpConfirm = async () => {
     if (!giftCardInput.trim()) return;
     setTopUpStatus("loading");
     try {
-      const response = await fetch("http://localhost:4000/gift-cards/redeem", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          card_number: giftCardInput.trim(),
-          email: user?.email,
-        }),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/gift-cards/redeem`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            card_number: giftCardInput.trim(),
+            email: user?.email,
+          }),
+        },
+      );
       const data = await response.json();
       if (data.success) {
         setTopUpStatus("success");
@@ -195,7 +201,7 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
 
     try {
       const response = await fetch(
-        "http://localhost:4000/transactions/parse-urls",
+        `${import.meta.env.VITE_API_BASE_URL}/transactions/parse-urls`,
         {
           method: "POST",
           headers: {
@@ -223,6 +229,7 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
           balance_left: data.value.balance_left,
         });
       }
+      await refreshUserProfile();
     } catch (error) {
       setParseStatus("error");
       setParseMessage(
@@ -302,7 +309,7 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
 
     try {
       const response = await fetch(
-        "http://localhost:4000/transactions/remove-urls",
+        `${import.meta.env.VITE_API_BASE_URL}/transactions/remove-urls`,
         {
           method: "POST",
           headers: {
@@ -451,7 +458,7 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
 
     try {
       const response = await fetch(
-        "http://localhost:4000/users/reset-password",
+        `${import.meta.env.VITE_API_BASE_URL}/users/reset-password`,
         {
           method: "POST",
           headers: {
