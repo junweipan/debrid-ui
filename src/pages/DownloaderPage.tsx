@@ -113,6 +113,8 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
       );
 
       if (!response.ok) {
+         onLogout();
+         navigate("/login", { replace: true });
         return;
       }
 
@@ -123,9 +125,10 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
         setUser(latestUser);
       }
     } catch {
-      // Keep existing state when profile refresh fails.
+      onLogout();
+      navigate("/login", { replace: true });
     }
-  }, [setUser]);
+  }, [setUser, onLogout, navigate]);
 
   useEffect(() => {
     void refreshUserProfile();
