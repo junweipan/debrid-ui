@@ -561,6 +561,16 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
             <span className="icon">📦</span>
             下载工具推荐
           </button>
+          {user?.role === "admin" && (
+            <button
+              type="button"
+              className="nav-item"
+              onClick={() => navigate("/admin")}
+            >
+              <span className="icon">🛠</span>
+              Admin 用户管理
+            </button>
+          )}
           <button
             type="button"
             className="nav-item"

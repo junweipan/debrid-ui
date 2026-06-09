@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAtom } from "jotai";
+import { userAtom } from "../atoms/userAtoms";
 
 const HOST_STATUS_ENDPOINT = "https://debrid-link.com/api/v2/downloader/hosts";
 const HOST_STATUS_TOKEN =
@@ -50,6 +52,7 @@ type HostStatusPageProps = {
 
 export function HostStatusPage({ onLogout }: HostStatusPageProps) {
   const navigate = useNavigate();
+  const [user] = useAtom(userAtom);
   const [hostStatus, setHostStatus] = useState<HostStatusState>({
     items: [],
     status: "idle",
@@ -238,6 +241,16 @@ export function HostStatusPage({ onLogout }: HostStatusPageProps) {
             <span className="icon">📦</span>
             下载工具推荐
           </button>
+          {user?.role === "admin" && (
+            <button
+              type="button"
+              className="nav-item"
+              onClick={() => navigate("/admin")}
+            >
+              <span className="icon">🛠</span>
+              Admin 用户管理
+            </button>
+          )}
           <button type="button" className="nav-item" onClick={handleLogout}>
             <span className="icon">🚪</span>
             退出登录
