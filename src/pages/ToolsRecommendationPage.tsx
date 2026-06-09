@@ -44,7 +44,7 @@ export function ToolsRecommendationPage({
         <button
           type="button"
           className="sidebar-close"
-          aria-label="Close navigation"
+          aria-label="关闭导航"
           onClick={() => setSidebarOpen(false)}
         >
           ×
@@ -105,7 +105,7 @@ export function ToolsRecommendationPage({
           <button
             type="button"
             className="mobile-nav-toggle"
-            aria-label="Open navigation"
+            aria-label="打开导航"
             aria-controls="primary-sidebar"
             aria-expanded={isSidebarOpen}
             onClick={() => setSidebarOpen(true)}
@@ -113,7 +113,7 @@ export function ToolsRecommendationPage({
             ☰
           </button>
           <div>
-            <p className="eyebrow">Download Tools</p>
+            <p className="eyebrow">下载工具</p>
             <h1>下载工具推荐</h1>
             <p className="subhead">推荐的下载器工具，适用于各种操作系统</p>
           </div>
@@ -208,6 +208,24 @@ export function ToolsRecommendationPage({
                     >
                       (Internet Download Manager)
                     </span>
+                  </li>
+                  <li
+                    style={{
+                      padding: "0.75rem 1rem",
+                      background: "rgba(99,102,241,0.1)",
+                      borderRadius: "6px",
+                      borderLeft: "3px solid #6366f1",
+                    }}
+                  >
+                    <a
+                      href="https://github.com/tytsxai/IDM-Activation-Script-Chinese"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <strong style={{ color: "#6366f1" }}>
+                        IDM 激活脚本（中文）
+                      </strong>
+                    </a>
                   </li>
                   <li
                     style={{

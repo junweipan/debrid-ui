@@ -37,7 +37,7 @@ type SortState = {
 };
 
 const summarizeDomains = (domains: string[]) => {
-  if (!domains?.length) return "Domain info unavailable";
+  if (!domains?.length) return "暂无域名信息";
   const preview = domains.slice(0, 3);
   const remainder = domains.length - preview.length;
   const baseLine = preview.join(" · ");
@@ -53,7 +53,7 @@ export function HostStatusPage({ onLogout }: HostStatusPageProps) {
   const [hostStatus, setHostStatus] = useState<HostStatusState>({
     items: [],
     status: "idle",
-    message: "Tap refresh to sync host data.",
+    message: "点击刷新以同步主机数据。",
   });
   const [sortState, setSortState] = useState<SortState>({
     field: null,
@@ -83,7 +83,7 @@ export function HostStatusPage({ onLogout }: HostStatusPageProps) {
     setHostStatus((prev) => ({
       ...prev,
       status: "loading",
-      message: "Syncing active hosts…",
+      message: "正在同步可用主机...",
     }));
 
     try {
@@ -106,10 +106,10 @@ export function HostStatusPage({ onLogout }: HostStatusPageProps) {
       }
 
       const orderedHosts = [...payload.value].sort(
-        (a, b) => b.status - a.status
+        (a, b) => b.status - a.status,
       );
       const activeCount = orderedHosts.filter(
-        (host) => host.status === 1
+        (host) => host.status === 1,
       ).length;
 
       setHostStatus({
@@ -124,9 +124,7 @@ export function HostStatusPage({ onLogout }: HostStatusPageProps) {
       });
     } catch (fetchError) {
       const message =
-        fetchError instanceof Error
-          ? fetchError.message
-          : "Unable to load host catalog";
+        fetchError instanceof Error ? fetchError.message : "无法加载主机目录";
       setHostStatus({
         items: [],
         status: "error",
@@ -203,7 +201,7 @@ export function HostStatusPage({ onLogout }: HostStatusPageProps) {
         <button
           type="button"
           className="sidebar-close"
-          aria-label="Close navigation"
+          aria-label="关闭导航"
           onClick={() => setSidebarOpen(false)}
         >
           ×
@@ -264,7 +262,7 @@ export function HostStatusPage({ onLogout }: HostStatusPageProps) {
           <button
             type="button"
             className="mobile-nav-toggle"
-            aria-label="Open navigation"
+            aria-label="打开导航"
             aria-controls="primary-sidebar"
             aria-expanded={isSidebarOpen}
             onClick={() => setSidebarOpen(true)}
@@ -272,19 +270,9 @@ export function HostStatusPage({ onLogout }: HostStatusPageProps) {
             ☰
           </button>
           <div>
-            <p className="eyebrow">Status center</p>
-            <h1>Active host status</h1>
-            <p className="subhead">
-              Mirrors pulled directly from Debrid-Link&apos;s live availability
-              feed.
-            </p>
-          </div>
-          <div className="user-pill">
-            <span className="status-dot" />
-            <div>
-              <p className="user-label">Session: orbital@stack</p>
-              <p className="user-note">Premium · exp 12 Feb</p>
-            </div>
+            <p className="eyebrow">状态中心</p>
+            <h1>主机可用状态</h1>
+            <p className="subhead">数据来自 Debrid-Link 的实时可用性接口。</p>
           </div>
         </header>
 
@@ -300,7 +288,7 @@ export function HostStatusPage({ onLogout }: HostStatusPageProps) {
               onClick={() => void fetchHostStatuses()}
               disabled={hostStatus.status === "loading"}
             >
-              {hostStatus.status === "loading" ? "Refreshing…" : "Refresh"}
+              {hostStatus.status === "loading" ? "刷新中..." : "刷新"}
             </button>
           </div>
           <div
@@ -312,7 +300,9 @@ export function HostStatusPage({ onLogout }: HostStatusPageProps) {
               <p>{hostStatus.message}</p>
             </div>
             {lastUpdatedCopy && (
-              <p className="host-status-timestamp">Updated {lastUpdatedCopy}</p>
+              <p className="host-status-timestamp">
+                更新时间 {lastUpdatedCopy}
+              </p>
             )}
           </div>
 
@@ -320,17 +310,16 @@ export function HostStatusPage({ onLogout }: HostStatusPageProps) {
             <input
               type="text"
               className="host-filter-input"
-              placeholder="Filter by host name or primary domain..."
+              placeholder="按主机名或主域名筛选..."
               value={filterText}
               onChange={(e) => setFilterText(e.target.value)}
-              aria-label="Filter hosts by name or domain"
+              aria-label="按主机名或域名筛选"
             />
           </div>
 
           {hostStatus.status === "error" ? (
             <p className="host-status-error">
-              Unable to reach Debrid-Link. Retry the sync to view live host
-              data.
+              无法连接 Debrid-Link。请重试同步以查看实时主机数据。
             </p>
           ) : (
             <div
@@ -355,14 +344,14 @@ export function HostStatusPage({ onLogout }: HostStatusPageProps) {
                         )}
                       </button>
                     </th>
-                    <th scope="col">Tier</th>
+                    <th scope="col">Level</th>
                     <th scope="col">
                       <button
                         type="button"
                         className="table-sort-button"
                         onClick={() => handleSort("domain")}
                       >
-                        Primary domain
+                        Domain
                         {sortState.field === "domain" && (
                           <span className="sort-indicator">
                             {sortState.direction === "asc" ? "↑" : "↓"}
@@ -370,14 +359,14 @@ export function HostStatusPage({ onLogout }: HostStatusPageProps) {
                         )}
                       </button>
                     </th>
-                    <th scope="col">Domain coverage</th>
+                    <th scope="col">Domain Coverage</th>
                     <th scope="col">
                       <button
                         type="button"
                         className="table-sort-button"
                         onClick={() => handleSort("status")}
                       >
-                        Status
+                        状态
                         {sortState.field === "status" && (
                           <span className="sort-indicator">
                             {sortState.direction === "asc" ? "↑" : "↓"}
@@ -391,13 +380,13 @@ export function HostStatusPage({ onLogout }: HostStatusPageProps) {
                   {hostStatus.items.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="host-status-empty-cell">
-                        No hosts reported.
+                        暂无主机数据。
                       </td>
                     </tr>
                   ) : filteredItems.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="host-status-empty-cell">
-                        No hosts match your filter.
+                        没有符合筛选条件的主机。
                       </td>
                     </tr>
                   ) : (
@@ -406,13 +395,13 @@ export function HostStatusPage({ onLogout }: HostStatusPageProps) {
                         <td>
                           <div className="host-name-cell">
                             <span className="host-type-pill">
-                              {host.type === "stream" ? "Stream" : "Host"}
+                              {host.type === "stream" ? "Streaming" : "Host"}
                             </span>
                             <span className="host-name">{host.name}</span>
                           </div>
                         </td>
-                        <td>{host.isFree ? "Free tier" : "Premium"}</td>
-                        <td>{host.domains[0] ?? "No domain reported"}</td>
+                        <td>{host.isFree ? "Free" : "Premium"}</td>
+                        <td>{host.domains[0] ?? "No reported domain"}</td>
                         <td>{summarizeDomains(host.domains)}</td>
                         <td>
                           <span
