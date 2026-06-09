@@ -1,5 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { useAtom } from "jotai";
+import { userAtom } from "../atoms/userAtoms";
 
 type ToolsRecommendationPageProps = {
   onLogout: () => void;
@@ -9,6 +11,7 @@ export function ToolsRecommendationPage({
   onLogout,
 }: ToolsRecommendationPageProps) {
   const navigate = useNavigate();
+  const [user] = useAtom(userAtom);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -44,7 +47,7 @@ export function ToolsRecommendationPage({
         <button
           type="button"
           className="sidebar-close"
-          aria-label="Close navigation"
+          aria-label="关闭导航"
           onClick={() => setSidebarOpen(false)}
         >
           ×
@@ -81,6 +84,16 @@ export function ToolsRecommendationPage({
             <span className="icon">📦</span>
             下载工具推荐
           </button>
+          {user?.role === "admin" && (
+            <button
+              type="button"
+              className="nav-item"
+              onClick={() => navigate("/admin")}
+            >
+              <span className="icon">🛠</span>
+              Admin 用户管理
+            </button>
+          )}
           <button type="button" className="nav-item" onClick={handleLogout}>
             <span className="icon">🚪</span>
             退出登录
@@ -105,7 +118,7 @@ export function ToolsRecommendationPage({
           <button
             type="button"
             className="mobile-nav-toggle"
-            aria-label="Open navigation"
+            aria-label="打开导航"
             aria-controls="primary-sidebar"
             aria-expanded={isSidebarOpen}
             onClick={() => setSidebarOpen(true)}
@@ -113,7 +126,7 @@ export function ToolsRecommendationPage({
             ☰
           </button>
           <div>
-            <p className="eyebrow">Download Tools</p>
+            <p className="eyebrow">下载工具</p>
             <h1>下载工具推荐</h1>
             <p className="subhead">推荐的下载器工具，适用于各种操作系统</p>
           </div>
@@ -208,6 +221,24 @@ export function ToolsRecommendationPage({
                     >
                       (Internet Download Manager)
                     </span>
+                  </li>
+                  <li
+                    style={{
+                      padding: "0.75rem 1rem",
+                      background: "rgba(99,102,241,0.1)",
+                      borderRadius: "6px",
+                      borderLeft: "3px solid #6366f1",
+                    }}
+                  >
+                    <a
+                      href="https://github.com/tytsxai/IDM-Activation-Script-Chinese"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <strong style={{ color: "#6366f1" }}>
+                        IDM 激活脚本（中文）
+                      </strong>
+                    </a>
                   </li>
                   <li
                     style={{

@@ -7,6 +7,7 @@ import { HostStatusPage } from "./pages/HostStatusPage";
 import { LoginPage } from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import { ToolsRecommendationPage } from "./pages/ToolsRecommendationPage";
+import { AdminPage } from "./pages/AdminPage";
 import { tokenAtom, userAtom } from "./atoms/userAtoms";
 
 function App() {
@@ -144,6 +145,16 @@ function App() {
           element={
             isAuthenticated ? (
               <ToolsRecommendationPage onLogout={handleLogout} />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            isAuthenticated ? (
+              <AdminPage onLogout={handleLogout} />
             ) : (
               <Navigate to="/login" replace />
             )

@@ -28,19 +28,18 @@ export default function RegisterPage() {
     setError("");
     setSuccess(false);
 
-    // Validation
     if (!email || !password) {
-      setError("Email and password are required");
+      setError("邮箱和密码为必填项");
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError("两次输入的密码不一致");
       return;
     }
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters");
+      setError("密码长度至少为 6 位");
       return;
     }
 
@@ -64,14 +63,13 @@ export default function RegisterPage() {
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(
-          errorData.message || `Registration failed: ${response.statusText}`,
+          errorData.message || `注册失败：${response.statusText}`,
         );
       }
 
       const data: RegisterResponse = await response.json();
 
       if (data.success && data.value.token) {
-        // Store token in localStorage
         localStorage.setItem("authToken", data.value.token);
         localStorage.setItem("user", JSON.stringify(data.value.user));
 
@@ -80,13 +78,12 @@ export default function RegisterPage() {
         setPassword("");
         setConfirmPassword("");
 
-        // Redirect to home page or dashboard after 1.5 seconds
         setTimeout(() => {
           navigate("/");
         }, 1500);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      setError(err instanceof Error ? err.message : "发生错误，请稍后重试");
     } finally {
       setLoading(false);
     }
@@ -95,13 +92,11 @@ export default function RegisterPage() {
   return (
     <div className="register-container">
       <div className="register-card">
-        <h1>Create Account</h1>
+        <h1>创建账户</h1>
 
         {error && <div className="error-message">{error}</div>}
         {success && (
-          <div className="success-message">
-            Registration successful! Redirecting...
-          </div>
+          <div className="success-message">注册成功，正在跳转...</div>
         )}
 
         <form onSubmit={handleSubmit}>
@@ -112,45 +107,45 @@ export default function RegisterPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
+              placeholder="请输入邮箱"
               disabled={loading}
               required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">密码</label>
             <input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter password (min 6 characters)"
+              placeholder="请输入密码（至少 6 位）"
               disabled={loading}
               required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="confirmPassword">Confirm Password</label>
+            <label htmlFor="confirmPassword">确认密码</label>
             <input
               id="confirmPassword"
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Confirm password"
+              placeholder="请再次输入密码"
               disabled={loading}
               required
             />
           </div>
 
           <button type="submit" disabled={loading} className="submit-button">
-            {loading ? "Registering..." : "Register"}
+            {loading ? "注册中..." : "注册"}
           </button>
         </form>
 
         <div className="login-link">
-          Already have an account?{" "}
+          已有账户？{" "}
           <a
             href="/login"
             onClick={(e) => {
@@ -158,7 +153,7 @@ export default function RegisterPage() {
               navigate("/login");
             }}
           >
-            Login here
+            前往登录
           </a>
         </div>
       </div>

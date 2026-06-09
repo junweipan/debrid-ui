@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
 import { userAtom, tokenAtom } from "../atoms/userAtoms";
 
-const SAMPLE_EMAIL = "panjunweide@gmail.com";
+const SAMPLE_EMAIL = "example@gmail.com";
 const SAMPLE_PASSWORD = "123456";
 
 type LoginCredentials = {
@@ -112,7 +112,7 @@ export function LoginPage({ onSuccess }: LoginPageProps) {
       const payload = await response.json();
 
       if (!payload?.success) {
-        throw new Error("Invalid response");
+        throw new Error("响应数据无效");
       }
 
       setForgotPasswordModalOpen(false);
@@ -172,7 +172,7 @@ export function LoginPage({ onSuccess }: LoginPageProps) {
       );
 
       if (!response.ok) {
-        throw new Error("Request failed");
+        throw new Error("请求失败");
       }
 
       const payload = await response.json();
@@ -180,11 +180,11 @@ export function LoginPage({ onSuccess }: LoginPageProps) {
       const token = payload?.value?.token;
 
       if (!payload?.success || !user || !token) {
-        throw new Error("Invalid response");
+        throw new Error("响应数据无效");
       }
 
       if ((user.email as string)?.toLowerCase() !== normalizedEmailLower) {
-        throw new Error("Email mismatch");
+        throw new Error("邮箱不匹配");
       }
 
       localStorage.setItem("authToken", token as string);
@@ -204,7 +204,7 @@ export function LoginPage({ onSuccess }: LoginPageProps) {
   return (
     <div className="login-shell">
       <div className="login-card">
-        <p className="login-eyebrow">derbrid secure</p>
+        <p className="login-eyebrow">derbrid 安全登录</p>
         <p className="login-subhead">请先登录后使用全部功能</p>
         <form className="login-form" onSubmit={handleSubmit}>
           <label className="input-field">
@@ -260,9 +260,6 @@ export function LoginPage({ onSuccess }: LoginPageProps) {
           >
             创建新账户
           </button>
-          <p className="login-hint">
-            示例账号: {SAMPLE_EMAIL} · {SAMPLE_PASSWORD}
-          </p>
         </form>
       </div>
 

@@ -43,6 +43,7 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
   const historyOriginalUrls = user?.original_urls ?? [];
   const historyParsedUrls = user?.parsed_urls ?? [];
   const [selectedHistoryKeys, setSelectedHistoryKeys] = useState<string[]>([]);
+  const RAPIDGATOR_URL_PATTERN = /^https?:\/\/(?:www\.)?rapidgator\.net\/.+/i;
 
   const historyRows = historyOriginalUrls.map((originalItem, index) => {
     const parsedItem = historyParsedUrls[index];
@@ -73,8 +74,6 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
       delta: "",
       showTopUp: true,
     },
-    { label: "已使用流量", value: `${user?.data_used ?? "—"} GB`, delta: "" },
-    { label: "成功转存", value: String(user?.parser_count ?? "—"), delta: "" },
   ];
 
   useEffect(() => {
@@ -113,8 +112,8 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
       );
 
       if (!response.ok) {
-         onLogout();
-         navigate("/login", { replace: true });
+        onLogout();
+        navigate("/login", { replace: true });
         return;
       }
 
@@ -181,13 +180,27 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
   };
 
   const handleBeginParse = async () => {
-    const urls = textareaContent
-      .split(/[\n\s,]+/)
-      .filter((url) => url.length > 0);
+    const url = textareaContent.trim();
 
-    if (urls.length === 0) {
+    if (!url) {
       setParseStatus("error");
       setParseMessage("请输入至少一个URL");
+      return;
+    }
+
+    if (/[,\s]/.test(url)) {
+      setParseStatus("error");
+      setParseMessage(
+        "仅支持输入一个 Rapidgator 链接。请移除空格、换行或逗号。",
+      );
+      return;
+    }
+
+    if (!RAPIDGATOR_URL_PATTERN.test(url)) {
+      setParseStatus("error");
+      setParseMessage(
+        "仅支持 Rapidgator 链接（例如：https://rapidgator.net/file/...）。",
+      );
       return;
     }
 
@@ -211,7 +224,7 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ urls }),
+          body: JSON.stringify({ urls: [url] }),
         },
       );
 
@@ -511,7 +524,7 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
         <button
           type="button"
           className="sidebar-close"
-          aria-label="Close navigation"
+          aria-label="关闭导航"
           onClick={() => setSidebarOpen(false)}
         >
           ×
@@ -548,6 +561,16 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
             <span className="icon">📦</span>
             下载工具推荐
           </button>
+          {user?.role === "admin" && (
+            <button
+              type="button"
+              className="nav-item"
+              onClick={() => navigate("/admin")}
+            >
+              <span className="icon">🛠</span>
+              Admin 用户管理
+            </button>
+          )}
           <button
             type="button"
             className="nav-item"
@@ -580,7 +603,7 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
           <button
             type="button"
             className="mobile-nav-toggle"
-            aria-label="Open navigation"
+            aria-label="打开导航"
             aria-controls="primary-sidebar"
             aria-expanded={isSidebarOpen}
             onClick={() => setSidebarOpen(true)}
@@ -608,19 +631,35 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
         <section className="composer">
           <div className="composer-header">
             <div>
-              <p className="eyebrow">New resource</p>
-              <h2>复制rapidgator链接，可多行同时粘贴，用回车换行符分隔</h2>
+              <p className="eyebrow">新任务</p>
+              <h2>请输入一个 Rapidgator 链接（仅支持单条）</h2>
             </div>
           </div>
           <div className="composer-body">
             <textarea
               className="composer-input"
-              placeholder="use rapidgator URL, e.g., https://rapidgator.net/file/.../JUR-748.mp4.html"
-              rows={8}
+              placeholder="仅支持一个 Rapidgator 链接，例如：https://rapidgator.net/file/.../JUR-748.mp4.html"
+              rows={2}
               value={textareaContent}
-              onChange={(e) => setTextareaContent(e.target.value)}
+              onChange={(e) => {
+                const nextValue = e.target.value;
+                const firstToken = nextValue
+                  .split(/[\n\s,]+/)
+                  .find((token) => token.length > 0);
+
+                setTextareaContent(firstToken ?? "");
+              }}
             />
             <div className="composer-actions">
+              <span
+                style={{
+                  color: "#94a3b8",
+                  fontSize: "15px",
+                  marginRight: "10px",
+                }}
+              >
+                提示：解析失败不扣次数
+              </span>
               <button
                 type="button"
                 className="primary-button"
@@ -726,7 +765,7 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
                     </a>
                     <button
                       type="button"
-                      aria-label="Copy download url"
+                      aria-label="复制下载链接"
                       onClick={() => handleCopyDownloadUrl(result.download_url)}
                       style={{
                         marginLeft: "8px",
@@ -862,7 +901,7 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
                           </a>
                           <button
                             type="button"
-                            aria-label="Copy history download url"
+                            aria-label="复制历史下载链接"
                             onClick={() => handleCopyDownloadUrl(parsedUrl)}
                             style={{
                               marginLeft: "8px",
