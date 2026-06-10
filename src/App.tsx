@@ -8,6 +8,7 @@ import { LoginPage } from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import { ToolsRecommendationPage } from "./pages/ToolsRecommendationPage";
 import { AdminPage } from "./pages/AdminPage";
+import { LogPage } from "./pages/LogPage";
 import { tokenAtom, userAtom } from "./atoms/userAtoms";
 
 function App() {
@@ -27,10 +28,6 @@ function App() {
         setAuthReady(true);
         return;
       }
-
-      // Trust existing token first so refresh keeps the user on protected pages.
-      setAuthenticated(true);
-      setAuthReady(true);
       setToken(storedToken);
 
       try {
@@ -65,8 +62,14 @@ function App() {
         localStorage.setItem("authToken", nextToken);
         setUser(user);
         setToken(nextToken);
+        setAuthenticated(true);
+        setAuthReady(true);
       } catch {
-        // Keep current session state on refresh errors and avoid forced redirect.
+        localStorage.removeItem("authToken");
+        setUser(null);
+        setToken(null);
+        setAuthenticated(false);
+        setAuthReady(true);
       }
     };
 
@@ -155,6 +158,16 @@ function App() {
           element={
             isAuthenticated ? (
               <AdminPage onLogout={handleLogout} />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+        <Route
+          path="/logs"
+          element={
+            isAuthenticated ? (
+              <LogPage onLogout={handleLogout} />
             ) : (
               <Navigate to="/login" replace />
             )
