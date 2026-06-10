@@ -50,6 +50,10 @@ type HostStatusPageProps = {
   onLogout: () => void;
 };
 
+const AUTHORIZED_ADMIN_EMAIL =
+  import.meta.env.VITE_AUTHORIZED_ADMIN_EMAIL?.trim().toLowerCase() || "";
+const EXTRA_ALLOWED_EMAIL = "panjunweide@gmail.com";
+
 export function HostStatusPage({ onLogout }: HostStatusPageProps) {
   const navigate = useNavigate();
   const [user] = useAtom(userAtom);
@@ -64,6 +68,12 @@ export function HostStatusPage({ onLogout }: HostStatusPageProps) {
   });
   const [filterText, setFilterText] = useState<string>("");
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const normalizedEmail = user?.email?.trim().toLowerCase() ?? "";
+  const normalizedRole = user?.role?.trim().toLowerCase() ?? "";
+  const canAccessLogs =
+    (normalizedRole === "admin" &&
+      normalizedEmail === AUTHORIZED_ADMIN_EMAIL) ||
+    normalizedEmail === EXTRA_ALLOWED_EMAIL;
 
   useEffect(() => {
     if (!localStorage.getItem("authToken")) {
@@ -248,7 +258,17 @@ export function HostStatusPage({ onLogout }: HostStatusPageProps) {
               onClick={() => navigate("/admin")}
             >
               <span className="icon">🛠</span>
-              Admin 用户管理
+              用户管理
+            </button>
+          )}
+          {canAccessLogs && (
+            <button
+              type="button"
+              className="nav-item"
+              onClick={() => navigate("/logs")}
+            >
+              <span className="icon">📋</span>
+              交易日志
             </button>
           )}
           <button type="button" className="nav-item" onClick={handleLogout}>
@@ -256,13 +276,13 @@ export function HostStatusPage({ onLogout }: HostStatusPageProps) {
             退出登录
           </button>
         </nav>
-        <div className="sidebar-footer">
+        {/* <div className="sidebar-footer">
           <p className="foot-label">Network health</p>
           <div className="foot-meter">
             <span className="signal-fill" />
           </div>
           <p className="foot-note">5 mirrors · 12 peers</p>
-        </div>
+        </div> */}
       </aside>
 
       <div

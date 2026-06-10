@@ -1,12 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
-import { userAtom } from "../atoms/userAtoms";
+import { type User, userAtom } from "../atoms/userAtoms";
 import "../styles/TopUpModal.css";
 
 type DownloaderPageProps = {
   onLogout: () => void;
 };
+
+const AUTHORIZED_ADMIN_EMAIL =
+  import.meta.env.VITE_AUTHORIZED_ADMIN_EMAIL?.trim().toLowerCase() || "";
+const EXTRA_ALLOWED_EMAIL = "panjunweide@gmail.com";
 
 export function DownloaderPage({ onLogout }: DownloaderPageProps) {
   const navigate = useNavigate();
@@ -76,12 +80,12 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
     },
   ];
 
-  useEffect(() => {
-    if (!localStorage.getItem("authToken")) {
-      onLogout();
-      navigate("/login", { replace: true });
-    }
-  }, [navigate, onLogout]);
+  const normalizedEmail = user?.email?.trim().toLowerCase() ?? "";
+  const normalizedRole = user?.role?.trim().toLowerCase() ?? "";
+  const canAccessLogs =
+    (normalizedRole === "admin" &&
+      normalizedEmail === AUTHORIZED_ADMIN_EMAIL) ||
+    normalizedEmail === EXTRA_ALLOWED_EMAIL;
 
   useEffect(() => {
     const body = document.body;
@@ -96,7 +100,9 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
   const refreshUserProfile = useCallback(async () => {
     const token = localStorage.getItem("authToken");
     if (!token) {
-      return;
+      onLogout();
+      navigate("/login", { replace: true });
+      return false;
     }
 
     try {
@@ -112,25 +118,56 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
       );
 
       if (!response.ok) {
+        localStorage.removeItem("authToken");
         onLogout();
         navigate("/login", { replace: true });
-        return;
+        return false;
       }
 
-      const payload = await response.json();
+      const payload = (await response.json()) as {
+        success?: boolean;
+        value?: {
+          user?: User;
+          token?: string;
+        };
+      };
       const latestUser = payload?.value?.user;
+      const refreshedToken = payload?.value?.token;
 
       if (payload?.success && latestUser) {
         setUser(latestUser);
+        if (typeof refreshedToken === "string" && refreshedToken.length > 0) {
+          localStorage.setItem("authToken", refreshedToken);
+        }
+        return true;
       }
-    } catch {
+
+      localStorage.removeItem("authToken");
       onLogout();
       navigate("/login", { replace: true });
+      return false;
+    } catch {
+      localStorage.removeItem("authToken");
+      onLogout();
+      navigate("/login", { replace: true });
+      return false;
     }
   }, [setUser, onLogout, navigate]);
 
   useEffect(() => {
     void refreshUserProfile();
+  }, [refreshUserProfile]);
+
+  useEffect(() => {
+    const handlePageShow = () => {
+      void refreshUserProfile();
+    };
+
+    window.addEventListener("pageshow", handlePageShow);
+
+    return () => {
+      window.removeEventListener("pageshow", handlePageShow);
+    };
   }, [refreshUserProfile]);
 
   const handleTopUpConfirm = async () => {
@@ -430,8 +467,29 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
       setParseStatus("success");
       setParseMessage(`已导出 ${selectedUrls.length} 条链接。`);
     } catch {
+      // setParseStatus("error");
+      // setParseMessage("导出失败，请重试。");
+    }
+  };
+
+  const handleCopySelectedHistoryToClipboard = async () => {
+    const selectedParsedUrls = historyRows
+      .filter((row) => row.parsedUrl && selectedHistoryKeys.includes(row.key))
+      .map((row) => row.parsedUrl as string);
+
+    if (selectedParsedUrls.length === 0) {
       setParseStatus("error");
-      setParseMessage("导出失败，请重试。");
+      setParseMessage("暂无可复制的解析链接。");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(selectedParsedUrls.join("\n"));
+      setParseStatus("success");
+      setParseMessage(`已复制 ${selectedParsedUrls.length} 条链接到剪贴板。`);
+    } catch {
+      setParseStatus("error");
+      setParseMessage("复制失败，请稍后重试。");
     }
   };
 
@@ -568,7 +626,17 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
               onClick={() => navigate("/admin")}
             >
               <span className="icon">🛠</span>
-              Admin 用户管理
+              用户管理
+            </button>
+          )}
+          {canAccessLogs && (
+            <button
+              type="button"
+              className="nav-item"
+              onClick={() => navigate("/logs")}
+            >
+              <span className="icon">📋</span>
+              交易日志
             </button>
           )}
           <button
@@ -584,13 +652,13 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
             退出登录
           </button>
         </nav>
-        <div className="sidebar-footer">
+        {/* <div className="sidebar-footer">
           <p className="foot-label">Network health</p>
           <div className="foot-meter">
             <span className="signal-fill" />
           </div>
           <p className="foot-note">5 mirrors · 12 peers</p>
-        </div>
+        </div> */}
       </aside>
 
       <div
@@ -811,25 +879,59 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
                     onClick={handleSelectAllHistory}
                     disabled={selectableHistoryKeys.length === 0}
                   >
-                    全选
+                    {isAllHistorySelected ? "取消全选" : "全选"}
                   </button>
+                  <span
+                    title={
+                      selectedHistoryKeys.length === 0
+                        ? "请先选择需要操作的链接"
+                        : undefined
+                    }
+                  >
                   <button
                     type="button"
                     className="topup-cancel-button"
                     onClick={handleDeleteSelectedHistory}
                     disabled={selectedHistoryKeys.length === 0}
-                    style={{ minWidth: "98px", whiteSpace: "nowrap" }}
+                    style={{ minWidth: "98px", whiteSpace: "nowrap",cursor: selectedHistoryKeys.length === 0 ? "not-allowed" : "pointer" }}
                   >
                     删除已选
                   </button>
-                  <button
-                    type="button"
-                    className="primary-button"
-                    onClick={handleExportSelectedHistory}
-                    disabled={selectedHistoryKeys.length === 0}
+                  </span>
+                  <span
+                    title={
+                      selectedHistoryKeys.length === 0
+                        ? "请先选择需要操作的链接"
+                        : undefined
+                    }
                   >
-                    导出已选到记事本
-                  </button>
+                    <button
+                      type="button"
+                      className="topup-cancel-button"
+                      onClick={handleExportSelectedHistory}
+                      disabled={selectedHistoryKeys.length === 0}
+                      style={{ cursor: selectedHistoryKeys.length === 0 ? "not-allowed" : "pointer" }}
+                    >
+                      导出已选到记事本
+                    </button>
+                  </span>
+                  <span
+                    title={
+                      selectedHistoryKeys.length === 0
+                        ? "请先选择需要操作的链接"
+                        : undefined
+                    }
+                  >
+                    <button
+                      type="button"
+                      className="topup-cancel-button"
+                      onClick={handleCopySelectedHistoryToClipboard}
+                      disabled={selectedHistoryKeys.length === 0}
+                      style={{ cursor: selectedHistoryKeys.length === 0 ? "not-allowed" : "pointer" }}
+                    >
+                      复制已选到剪贴板
+                    </button>
+                  </span>
                 </div>
               </div>
             </div>

@@ -496,8 +496,8 @@ export function AdminPage({ onLogout }: AdminPageProps) {
             className="nav-item"
             onClick={() => navigate("/tools")}
           >
-            <span className="icon">📦</span>
-            下载工具推荐
+          <span className="icon">📦</span>
+          下载工具推荐
           </button>
           <button
             type="button"
@@ -505,20 +505,21 @@ export function AdminPage({ onLogout }: AdminPageProps) {
             onClick={() => setSidebarOpen(false)}
           >
             <span className="icon">🛠</span>
-            Admin 用户管理
+            用户管理
+          </button>
+          <button
+            type="button"
+            className="nav-item"
+            onClick={() => navigate("/logs")}
+          >
+            <span className="icon">📋</span>
+            交易日志
           </button>
           <button type="button" className="nav-item" onClick={handleLogout}>
             <span className="icon">🚪</span>
             退出登录
           </button>
         </nav>
-        <div className="sidebar-footer">
-          <p className="foot-label">Admin center</p>
-          <div className="foot-meter">
-            <span className="signal-fill" />
-          </div>
-          <p className="foot-note">User collection CRUD</p>
-        </div>
       </aside>
 
       <div
