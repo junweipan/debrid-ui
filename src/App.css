@@ -817,6 +817,33 @@ h3 {
   color: var(--text-muted);
 }
 
+.foot-qq-image {
+  display: block;
+  width: 100%;
+  border-radius: 12px;
+  margin-top: 10px;
+  border: 1px solid var(--border-soft);
+}
+
+.page-qq-corner {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 12;
+  width: 96px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(8, 12, 24, 0.9);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.page-qq-corner img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
 body.no-scroll {
   overflow: hidden;
 }
@@ -1405,6 +1432,12 @@ body.no-scroll {
 
   .host-page-shell {
     padding: 32px 12px 44px;
+  }
+
+  .page-qq-corner {
+    width: 74px;
+    right: 10px;
+    bottom: 10px;
   }
 }
 

@@ -652,13 +652,11 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
             退出登录
           </button>
         </nav>
-        {/* <div className="sidebar-footer">
-          <p className="foot-label">Network health</p>
-          <div className="foot-meter">
-            <span className="signal-fill" />
-          </div>
-          <p className="foot-note">5 mirrors · 12 peers</p>
-        </div> */}
+        <div className="sidebar-footer">
+          <p className="foot-label">客服 QQ</p>
+          <img className="foot-qq-image" src="/QQ.jpg" alt="客服QQ二维码" />
+          <p className="foot-note">扫码添加客服 QQ</p>
+        </div>
       </aside>
 
       <div
@@ -888,15 +886,22 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
                         : undefined
                     }
                   >
-                  <button
-                    type="button"
-                    className="topup-cancel-button"
-                    onClick={handleDeleteSelectedHistory}
-                    disabled={selectedHistoryKeys.length === 0}
-                    style={{ minWidth: "98px", whiteSpace: "nowrap",cursor: selectedHistoryKeys.length === 0 ? "not-allowed" : "pointer" }}
-                  >
-                    删除已选
-                  </button>
+                    <button
+                      type="button"
+                      className="topup-cancel-button"
+                      onClick={handleDeleteSelectedHistory}
+                      disabled={selectedHistoryKeys.length === 0}
+                      style={{
+                        minWidth: "98px",
+                        whiteSpace: "nowrap",
+                        cursor:
+                          selectedHistoryKeys.length === 0
+                            ? "not-allowed"
+                            : "pointer",
+                      }}
+                    >
+                      删除已选
+                    </button>
                   </span>
                   <span
                     title={
@@ -910,7 +915,12 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
                       className="topup-cancel-button"
                       onClick={handleExportSelectedHistory}
                       disabled={selectedHistoryKeys.length === 0}
-                      style={{ cursor: selectedHistoryKeys.length === 0 ? "not-allowed" : "pointer" }}
+                      style={{
+                        cursor:
+                          selectedHistoryKeys.length === 0
+                            ? "not-allowed"
+                            : "pointer",
+                      }}
                     >
                       导出已选到记事本
                     </button>
@@ -927,7 +937,12 @@ export function DownloaderPage({ onLogout }: DownloaderPageProps) {
                       className="topup-cancel-button"
                       onClick={handleCopySelectedHistoryToClipboard}
                       disabled={selectedHistoryKeys.length === 0}
-                      style={{ cursor: selectedHistoryKeys.length === 0 ? "not-allowed" : "pointer" }}
+                      style={{
+                        cursor:
+                          selectedHistoryKeys.length === 0
+                            ? "not-allowed"
+                            : "pointer",
+                      }}
                     >
                       复制已选到剪贴板
                     </button>

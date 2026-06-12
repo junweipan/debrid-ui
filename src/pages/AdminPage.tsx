@@ -496,8 +496,8 @@ export function AdminPage({ onLogout }: AdminPageProps) {
             className="nav-item"
             onClick={() => navigate("/tools")}
           >
-          <span className="icon">📦</span>
-          下载工具推荐
+            <span className="icon">📦</span>
+            下载工具推荐
           </button>
           <button
             type="button"
@@ -520,6 +520,11 @@ export function AdminPage({ onLogout }: AdminPageProps) {
             退出登录
           </button>
         </nav>
+        <div className="sidebar-footer">
+          <p className="foot-label">客服 QQ</p>
+          <img className="foot-qq-image" src="/QQ.jpg" alt="客服QQ二维码" />
+          <p className="foot-note">扫码添加客服 QQ</p>
+        </div>
       </aside>
 
       <div
