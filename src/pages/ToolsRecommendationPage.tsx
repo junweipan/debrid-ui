@@ -119,13 +119,11 @@ export function ToolsRecommendationPage({
             退出登录
           </button>
         </nav>
-        {/* <div className="sidebar-footer">
-          <p className="foot-label">Network health</p>
-          <div className="foot-meter">
-            <span className="signal-fill" />
-          </div>
-          <p className="foot-note">5 mirrors · 12 peers</p>
-        </div> */}
+        <div className="sidebar-footer">
+          <p className="foot-label">客服 QQ</p>
+          <img className="foot-qq-image" src="/QQ.jpg" alt="客服QQ二维码" />
+          <p className="foot-note">扫码添加客服 QQ</p>
+        </div>
       </aside>
 
       <div

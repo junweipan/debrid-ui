@@ -263,6 +263,10 @@ export function LoginPage({ onSuccess }: LoginPageProps) {
         </form>
       </div>
 
+      <div className="page-qq-corner" aria-label="客服QQ">
+        <img src="/QQ.jpg" alt="客服QQ二维码" />
+      </div>
+
       {isForgotPasswordModalOpen && (
         <div
           className="login-modal-overlay"

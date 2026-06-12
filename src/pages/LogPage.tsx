@@ -165,16 +165,13 @@ export function LogPage({ onLogout }: LogPageProps) {
 
       try {
         const params = buildQueryParams(targetPage);
-        const response = await fetch(
-          `${API_BASE}/transactionLog?${params}`,
-          {
-            method: "GET",
-            headers: {
-              Accept: "application/json",
-              Authorization: `Bearer ${token}`,
-            },
+        const response = await fetch(`${API_BASE}/transactionLog?${params}`, {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
           },
-        );
+        });
 
         const payload = (await response.json()) as TransactionLogsPayload;
 
@@ -194,9 +191,7 @@ export function LogPage({ onLogout }: LogPageProps) {
         const pagination = payload.value?.pagination;
 
         setLogs(items);
-        setTotal(
-          typeof pagination?.total === "number" ? pagination.total : 0,
-        );
+        setTotal(typeof pagination?.total === "number" ? pagination.total : 0);
         setNotice(`已加载 ${items.length} 条日志记录`);
       } catch (fetchError) {
         setError(
@@ -206,14 +201,7 @@ export function LogPage({ onLogout }: LogPageProps) {
         setLoading(false);
       }
     },
-    [
-      hasAccess,
-      getAuthToken,
-      page,
-      buildQueryParams,
-      onLogout,
-      navigate,
-    ],
+    [hasAccess, getAuthToken, page, buildQueryParams, onLogout, navigate],
   );
 
   const verifyAccess = useCallback(async () => {
@@ -329,16 +317,13 @@ export function LogPage({ onLogout }: LogPageProps) {
     setNotice(null);
 
     try {
-      const response = await fetch(
-        `${API_BASE}/transactionLog/${log.id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Accept: "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+      const response = await fetch(`${API_BASE}/transactionLog/${log.id}`, {
+        method: "DELETE",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
         },
-      );
+      });
 
       const payload = (await response.json()) as DeletePayload;
 
@@ -410,15 +395,11 @@ export function LogPage({ onLogout }: LogPageProps) {
         throw new Error(getErrorMessage("批量删除失败", payload));
       }
 
-      setNotice(
-        `已批量删除 ${payload.value?.deleted_count ?? 0} 条日志`,
-      );
+      setNotice(`已批量删除 ${payload.value?.deleted_count ?? 0} 条日志`);
       setConfirmBulkDelete(false);
       await fetchLogs(true);
     } catch (bulkError) {
-      setError(
-        bulkError instanceof Error ? bulkError.message : "批量删除失败",
-      );
+      setError(bulkError instanceof Error ? bulkError.message : "批量删除失败");
     } finally {
       setBulkDeleting(false);
     }
@@ -501,6 +482,11 @@ export function LogPage({ onLogout }: LogPageProps) {
             退出登录
           </button>
         </nav>
+        <div className="sidebar-footer">
+          <p className="foot-label">客服 QQ</p>
+          <img className="foot-qq-image" src="/QQ.jpg" alt="客服QQ二维码" />
+          <p className="foot-note">扫码添加客服 QQ</p>
+        </div>
       </aside>
 
       <div

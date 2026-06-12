@@ -157,6 +157,9 @@ export default function RegisterPage() {
           </a>
         </div>
       </div>
+      <div className="page-qq-corner" aria-label="客服QQ">
+        <img src="/QQ.jpg" alt="客服QQ二维码" />
+      </div>
     </div>
   );
 }
