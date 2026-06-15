@@ -101,7 +101,14 @@ function App() {
   }, [setToken, setUser]);
 
   if (!isAuthReady) {
-    return <div className="login-shell">目前网站在闲置时会自动休眠，恢复连接可能需要 50 秒或更长时间，请保持网页连接，过1-2分钟后重新尝试...</div>;
+    return (
+      <div className="login-shell">
+        <div className="loading-card" role="status" aria-live="polite">
+          <div className="loading-spinner" aria-hidden="true" />
+          <p className="loading-text">正在恢复连接，请稍候...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
