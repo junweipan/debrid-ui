@@ -105,7 +105,8 @@ function App() {
       <div className="login-shell">
         <div className="loading-card" role="status" aria-live="polite">
           <div className="loading-spinner" aria-hidden="true" />
-          <p className="loading-text">目前网站在闲置时会自动休眠，恢复连接可能需要 50 秒或更长时间，请保持网页连接...</p>
+          {/* <p className="loading-text">目前网站在闲置时会自动休眠，恢复连接可能需要 50 秒或更长时间，请保持网页连接...</p> */}
+          <p className="loading-text">载入中...</p>
         </div>
       </div>
     );
